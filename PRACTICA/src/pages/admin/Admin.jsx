@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import db from '../../data/db.json'
 
 // Keys para almacenamiento local sincronizado
 const DB_KEYS = {
@@ -7,32 +8,23 @@ const DB_KEYS = {
   MOVEMENTS: 'controlinv_cr_movements',
   SUPPLIERS: 'controlinv_cr_suppliers',
   ORDERS: 'controlinv_cr_orders',
-  USERS: 'controlinv_cr_users'
+  USERS: 'controlinv_cr_users',
+  SOLICITUDES: 'controlinv_cr_solicitudes'
 }
 
+const today = new Date().toLocaleDateString('es-CR')
+
+const CURRENT_USER = db.seedData.users.find(u => u.role === 'Administrador')?.name || 'Administrador'
+
 const SEED_DATA = {
-  products: [
-    { id: 'p1', name: 'Café Grano Tarrazú 500g', category: 'Café y Té', supplier: 'Cooperativa CoopeTarrazú RL', cost: 3500, price: 5200, stock: 45, minStock: 15 },
-    { id: 'p2', name: 'Salsa Lizano Original 700ml', category: 'Condimentos', supplier: 'Distribuidora Monteverde', cost: 1850, price: 2600, stock: 8, minStock: 12 },
-    { id: 'p3', name: 'Arroz Tío Pelón 99% Grano Entero 1.8kg', category: 'Granos Básicos', supplier: 'Distribuidora Monteverde', cost: 2100, price: 2950, stock: 4, minStock: 10 },
-    { id: 'p4', name: 'Queso Turrialba Artesanal 1kg', category: 'Lácteos', supplier: 'Lácteos del Volcán', cost: 4200, price: 5800, stock: 18, minStock: 6 }
-  ],
-  suppliers: [
-    { id: 's1', name: 'Cooperativa CoopeTarrazú RL', phone: '+(506) 2544-0000', email: 'ventas@coopetarrazu.cr', category: 'Café y Granos' },
-    { id: 's2', name: 'Distribuidora Monteverde', phone: '+(506) 2221-8899', email: 'pedidos@monteverde.cr', category: 'Abarrotes y Condimentos' },
-    { id: 's3', name: 'Lácteos del Volcán', phone: '+(506) 2553-4411', email: 'contacto@lacteosvolcan.cr', category: 'Lácteos' }
-  ],
-  users: [
-    { id: 'u1', name: 'Víctor Admin', email: 'contacto.victorgonzalez0@gmail.com', role: 'Administrador', status: 'Activo' },
-    { id: 'u2', name: 'Aaron Caleb Rivera', email: 'aaron@empresa.cr', role: 'Jefe de Bodega', status: 'Activo' }
-  ],
-  movements: [
-    { id: 'm1', date: new Date().toLocaleDateString('es-CR') + ' 10:30', type: 'ENTRADA', productId: 'p1', productName: 'Café Grano Tarrazú 500g', quantity: 30, endStock: 45, reason: 'Ingreso inicial a bodega', user: 'Víctor Admin' },
-    { id: 'm2', date: new Date().toLocaleDateString('es-CR') + ' 11:15', type: 'SALIDA', productId: 'p3', productName: 'Arroz Tío Pelón 99% 1.8kg', quantity: 6, endStock: 4, reason: 'Despacho Factura #00124', user: 'Aaron Caleb Rivera' }
-  ],
-  orders: [
-    { id: 'OC-CR-101', supplier: 'Distribuidora Monteverde', productId: 'p2', productName: 'Salsa Lizano Original 700ml', quantity: 24, unitCost: 1850, total: 44400, status: 'Pendiente' }
-  ]
+  products: db.seedData.products,
+  suppliers: db.seedData.suppliers,
+  users: db.seedData.users,
+  movements: db.seedData.movements.map(m => ({
+    ...m,
+    date: m.id === 'm1' ? today + ' 10:30' : today + ' 11:15'
+  })),
+  orders: db.seedData.orders
 }
 
 function Admin() {
@@ -47,6 +39,7 @@ function Admin() {
   const [movements, setMovements] = useState([])
   const [orders, setOrders] = useState([])
   const [users, setUsers] = useState([])
+  const [solicitudes, setSolicitudes] = useState([])
 
   // Filtros
   const [catalogSearch, setCatalogSearch] = useState('')
@@ -113,12 +106,14 @@ function Admin() {
     const movs = loadData(DB_KEYS.MOVEMENTS, SEED_DATA.movements)
     const ords = loadData(DB_KEYS.ORDERS, SEED_DATA.orders)
     const usrs = loadData(DB_KEYS.USERS, SEED_DATA.users)
+    const sols = loadData(DB_KEYS.SOLICITUDES, [])
 
     setProducts(prods)
     setSuppliers(sups)
     setMovements(movs)
     setOrders(ords)
     setUsers(usrs)
+    setSolicitudes(sols)
 
     if (prods.length > 0) {
       setMovForm(prev => ({ ...prev, productId: prods[0].id }))
@@ -150,6 +145,10 @@ function Admin() {
     setUsers(newUsrs)
     localStorage.setItem(DB_KEYS.USERS, JSON.stringify(newUsrs))
   }
+  const saveSolicitudes = (newSols) => {
+    setSolicitudes(newSols)
+    localStorage.setItem(DB_KEYS.SOLICITUDES, JSON.stringify(newSols))
+  }
 
   const showNotification = (type, message) => {
     setToast({ type, message })
@@ -157,7 +156,7 @@ function Admin() {
   }
 
   const formatCRC = (amount) => {
-    return '₡' + Number(amount || 0).toLocaleString('es-CR', {
+    return 'â‚¡' + Number(amount || 0).toLocaleString('es-CR', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2
     })
@@ -169,10 +168,10 @@ function Admin() {
   const totalSale = products.reduce((acc, p) => acc + (p.price * p.stock), 0)
   const lowStock = products.filter(p => p.stock <= p.minStock)
 
-  // Categorías únicas
+  // CategorÃ­as Ãºnicas
   const categories = [...new Set(products.map(p => p.category))].filter(Boolean)
 
-  // Acciones Catálogo
+  // Acciones CatÃ¡logo
   const handleSaveProduct = (e) => {
     e.preventDefault()
     if (!prodForm.name || !prodForm.cost || !prodForm.price) {
@@ -221,8 +220,8 @@ function Admin() {
         productName: newP.name,
         quantity: newP.stock,
         endStock: newP.stock,
-        reason: 'Ingreso inicial a catálogo',
-        user: 'Víctor Admin'
+        reason: 'Ingreso inicial a catÃ¡logo',
+        user: CURRENT_USER
       }
       saveMovements([...movements, newMov])
       showNotification('success', `Producto "${newP.name}" registrado en inventario.`)
@@ -247,9 +246,9 @@ function Admin() {
   }
 
   const handleDeleteProduct = (p) => {
-    if (window.confirm(`¿Eliminar permanentemente "${p.name}"?`)) {
+    if (window.confirm(`Â¿Eliminar permanentemente "${p.name}"?`)) {
       saveProducts(products.filter(item => item.id !== p.id))
-      showNotification('error', `"${p.name}" eliminado del catálogo.`)
+      showNotification('error', `"${p.name}" eliminado del catÃ¡logo.`)
     }
   }
 
@@ -270,8 +269,8 @@ function Admin() {
       productName: p.name,
       quantity: Math.abs(delta),
       endStock: newStock,
-      reason: `Ajuste rápido (${delta > 0 ? '+1' : '-1'})`,
-      user: 'Víctor Admin'
+      reason: `Ajuste rÃ¡pido (${delta > 0 ? '+1' : '-1'})`,
+      user: 'VÃ­ctor Admin'
     }
     saveMovements([...movements, newMov])
     showNotification(delta > 0 ? 'success' : 'info', `${delta > 0 ? '+1' : '-1'} unidad a ${p.name}`)
@@ -301,11 +300,11 @@ function Admin() {
       quantity: qty,
       endStock: newStock,
       reason: movForm.reason || 'Movimiento manual',
-      user: 'Víctor Admin'
+      user: 'VÃ­ctor Admin'
     }
     saveMovements([...movements, newMov])
     setMovForm(prev => ({ ...prev, quantity: 1, reason: '' }))
-    showNotification('success', `Operación de ${movForm.type} registrada.`)
+    showNotification('success', `OperaciÃ³n de ${movForm.type} registrada.`)
   }
 
   // Acciones Proveedor
@@ -341,7 +340,7 @@ function Admin() {
   }
 
   const handleReceiveOrder = (o) => {
-    if (window.confirm(`¿Confirmar recepción de ${o.quantity} unidades de "${o.productName}"?`)) {
+    if (window.confirm(`Â¿Confirmar recepciÃ³n de ${o.quantity} unidades de "${o.productName}"?`)) {
       saveOrders(orders.map(item => item.id === o.id ? { ...item, status: 'Recibida' } : item))
 
       const p = products.find(item => item.id === o.productId)
@@ -357,12 +356,12 @@ function Admin() {
           productName: p.name,
           quantity: o.quantity,
           endStock: nextStock,
-          reason: `Recepción Orden ${o.id} (${o.supplier})`,
-          user: 'Víctor Admin'
+          reason: `RecepciÃ³n Orden ${o.id} (${o.supplier})`,
+          user: CURRENT_USER
         }
         saveMovements([...movements, newMov])
       }
-      showNotification('success', `Mercancía ingresada: +${o.quantity} unidades.`)
+      showNotification('success', `MercancÃ­a ingresada: +${o.quantity} unidades.`)
     }
   }
 
@@ -375,6 +374,35 @@ function Admin() {
     setUserForm({ name: '', email: '', role: 'Administrador' })
     showNotification('success', `Usuario "${newU.name}" creado.`)
   }
+
+  // Acciones Solicitudes
+  const handleAprobarSolicitud = (sol) => {
+    const msg = `InvControl CR â€” Acceso Empresarial\n\n` +
+      `Estimado/a ${sol.nombreContacto},\n\n` +
+      `Su solicitud para la empresa *${sol.nombreEmpresa}* ha sido *APROBADA*.\n\n` +
+      `Puede acceder al sistema con las siguientes credenciales:\n\n` +
+      `ðŸ”— URL: ${window.location.origin}/login\n` +
+      `ðŸ“§ Correo: ${sol.emailContacto}\n` +
+      `ðŸ”‘ ContraseÃ±a temporal: ${db.auth.tempPassword}\n\n` +
+      `Le recomendamos cambiar su contraseÃ±a tras el primer inicio de sesiÃ³n.\n\n` +
+      `â€” Equipo InvControl CR`
+
+    const whatsappUrl = `https://wa.me/${sol.telefonoContacto.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`
+
+    window.open(whatsappUrl, '_blank')
+
+    saveSolicitudes(solicitudes.map(s => s.id === sol.id ? { ...s, estado: 'Aprobada' } : s))
+    showNotification('success', `Solicitud de "${sol.nombreEmpresa}" aprobada. Mensaje enviado.`)
+  }
+
+  const handleRechazarSolicitud = (sol) => {
+    if (window.confirm(`Â¿Rechazar la solicitud de "${sol.nombreEmpresa}"?`)) {
+      saveSolicitudes(solicitudes.map(s => s.id === sol.id ? { ...s, estado: 'Rechazada' } : s))
+      showNotification('error', `Solicitud de "${sol.nombreEmpresa}" rechazada.`)
+    }
+  }
+
+  const pendientes = solicitudes.filter(s => s.estado === 'Pendiente')
 
   return (
     <div className="cr-dashboard-app">
@@ -403,7 +431,7 @@ function Admin() {
             <span className="navbar__brand-name">InvControl CR</span>
             <span className="navbar__brand-badge">
               <span className="material-symbols-outlined" style={{ fontSize: 12 }}>verified</span>
-              Edición Corporativa
+              EdiciÃ³n Corporativa
             </span>
           </div>
         </div>
@@ -411,7 +439,7 @@ function Admin() {
         <div className="navbar__center">
           <div className="cr-badge">
             <span className="material-symbols-outlined" style={{ fontSize: 15 }}>payments</span>
-            <span>Moneda: Colones (CRC ₡)</span>
+            <span>Moneda: Colones (CRC â‚¡)</span>
           </div>
         </div>
 
@@ -427,10 +455,10 @@ function Admin() {
           <div className="user-pill">
             <div className="user-pill__avatar">VG</div>
             <div className="user-pill__details">
-              <span className="user-pill__name">Víctor Admin</span>
-              <span className="user-pill__role">En Línea</span>
+              <span className="user-pill__name">{CURRENT_USER}</span>
+              <span className="user-pill__role">En LÃ­nea</span>
             </div>
-            <Link to="/" className="btn-logout-link" title="Cerrar sesión">
+            <Link to="/login" className="btn-logout-link" title="Cerrar sesiÃ³n">
               <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#f87171' }}>logout</span>
             </Link>
           </div>
@@ -441,14 +469,14 @@ function Admin() {
       <div className="app-body">
         <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
           <nav className="sidebar__nav">
-            <span className="nav-category">Analítica & Control</span>
+            <span className="nav-category">AnalÃ­tica & Control</span>
             <div className={`sidebar__item ${activeSection === 'dashboard' ? 'active' : ''}`} onClick={() => { setActiveSection('dashboard'); setSidebarOpen(false) }}>
               <span className="material-symbols-outlined">dashboard</span>
               <span>Dashboard & KPIs</span>
             </div>
             <div className={`sidebar__item ${activeSection === 'catalogo' ? 'active' : ''}`} onClick={() => { setActiveSection('catalogo'); setSidebarOpen(false) }}>
               <span className="material-symbols-outlined">shelves</span>
-              <span>Catálogo y Existencias</span>
+              <span>CatÃ¡logo y Existencias</span>
             </div>
             <div className={`sidebar__item ${activeSection === 'movimientos' ? 'active' : ''}`} onClick={() => { setActiveSection('movimientos'); setSidebarOpen(false) }}>
               <span className="material-symbols-outlined">sync_alt</span>
@@ -462,10 +490,19 @@ function Admin() {
             </div>
             <div className={`sidebar__item ${activeSection === 'ordenes' ? 'active' : ''}`} onClick={() => { setActiveSection('ordenes'); setSidebarOpen(false) }}>
               <span className="material-symbols-outlined">receipt_long</span>
-              <span>Órdenes de Compra</span>
+              <span>Ã“rdenes de Compra</span>
             </div>
 
-            <span className="nav-category">Administración</span>
+            <span className="nav-category">AdministraciÃ³n</span>
+            <div className={`sidebar__item ${activeSection === 'solicitudes' ? 'active' : ''}`} onClick={() => { setActiveSection('solicitudes'); setSidebarOpen(false) }}>
+              <span className="material-symbols-outlined">mail</span>
+              <span>Solicitudes</span>
+              {pendientes.length > 0 && (
+                <span style={{ marginLeft: 'auto', background: 'var(--danger)', color: '#fff', fontSize: '0.68rem', fontWeight: 700, padding: '2px 7px', borderRadius: 999 }}>
+                  {pendientes.length}
+                </span>
+              )}
+            </div>
             <div className={`sidebar__item ${activeSection === 'usuarios' ? 'active' : ''}`} onClick={() => { setActiveSection('usuarios'); setSidebarOpen(false) }}>
               <span className="material-symbols-outlined">manage_accounts</span>
               <span>Usuarios y Ajustes</span>
@@ -476,33 +513,33 @@ function Admin() {
         <main className="main-scroll">
           <div className="content-area">
 
-            {/* SECCIÓN 1: DASHBOARD */}
+            {/* SECCIÃ“N 1: DASHBOARD */}
             {activeSection === 'dashboard' && (
               <section className="view-section active">
                 <div className="section-header">
                   <div>
                     <h1 className="section-header__title">Panel de Control Gerencial</h1>
-                    <p className="section-header__desc">Resumen analítico valorizado en Colones Costarricenses (₡).</p>
+                    <p className="section-header__desc">Resumen analÃ­tico valorizado en Colones Costarricenses (â‚¡).</p>
                   </div>
                 </div>
 
                 <div className="kpi-grid">
                   <div className="kpi-card kpi-card--primary">
                     <div className="kpi-card__top">
-                      <span className="kpi-card__label">Total Artículos</span>
+                      <span className="kpi-card__label">Total ArtÃ­culos</span>
                       <div className="kpi-card__icon-box"><span className="material-symbols-outlined">category</span></div>
                     </div>
                     <div className="kpi-card__value">{totalProds}</div>
-                    <div className="kpi-card__sub">En catálogo activo</div>
+                    <div className="kpi-card__sub">En catÃ¡logo activo</div>
                   </div>
 
                   <div className="kpi-card kpi-card--success">
                     <div className="kpi-card__top">
-                      <span className="kpi-card__label">Valuación Costo (₡)</span>
+                      <span className="kpi-card__label">ValuaciÃ³n Costo (â‚¡)</span>
                       <div className="kpi-card__icon-box"><span className="material-symbols-outlined">account_balance_wallet</span></div>
                     </div>
                     <div className="kpi-card__value">{formatCRC(totalCost)}</div>
-                    <div className="kpi-card__sub">Inversión actual en bodega</div>
+                    <div className="kpi-card__sub">InversiÃ³n actual en bodega</div>
                   </div>
 
                   <div className="kpi-card kpi-card--info">
@@ -516,11 +553,11 @@ function Admin() {
 
                   <div className="kpi-card kpi-card--danger">
                     <div className="kpi-card__top">
-                      <span className="kpi-card__label">Bajo Stock Crítico</span>
+                      <span className="kpi-card__label">Bajo Stock CrÃ­tico</span>
                       <div className="kpi-card__icon-box"><span className="material-symbols-outlined">warning</span></div>
                     </div>
                     <div className="kpi-card__value">{lowStock.length}</div>
-                    <div className="kpi-card__sub">Productos que requieren reposición</div>
+                    <div className="kpi-card__sub">Productos que requieren reposiciÃ³n</div>
                   </div>
                 </div>
 
@@ -538,13 +575,13 @@ function Admin() {
                           <tr>
                             <th>Producto</th>
                             <th>Existencia</th>
-                            <th>Mínimo</th>
+                            <th>MÃ­nimo</th>
                             <th>Estado</th>
                           </tr>
                         </thead>
                         <tbody>
                           {lowStock.length === 0 ? (
-                            <tr><td colSpan="4" style={{ textAlign: 'center', color: 'var(--text-muted)' }}>✅ Existencias en rangos óptimos</td></tr>
+                            <tr><td colSpan="4" style={{ textAlign: 'center', color: 'var(--text-muted)' }}>âœ… Existencias en rangos Ã³ptimos</td></tr>
                           ) : (
                             lowStock.slice(0, 5).map(p => (
                               <tr key={p.id}>
@@ -564,7 +601,7 @@ function Admin() {
                     <div className="card-panel__header">
                       <h3 className="card-panel__title">
                         <span className="material-symbols-outlined" style={{ color: 'var(--accent)' }}>history</span>
-                        Últimos Movimientos en Kardex
+                        Ãšltimos Movimientos en Kardex
                       </h3>
                     </div>
                     <div className="table-responsive table-responsive--compact">
@@ -598,13 +635,13 @@ function Admin() {
               </section>
             )}
 
-            {/* SECCIÓN 2: CATÁLOGO */}
+            {/* SECCIÃ“N 2: CATÃLOGO */}
             {activeSection === 'catalogo' && (
               <section className="view-section active">
                 <div className="section-header">
                   <div>
-                    <h1 className="section-header__title">Catálogo y Control de Existencias</h1>
-                    <p className="section-header__desc">Gestión integral de productos, costos, precios de venta y control de stock.</p>
+                    <h1 className="section-header__title">CatÃ¡logo y Control de Existencias</h1>
+                    <p className="section-header__desc">GestiÃ³n integral de productos, costos, precios de venta y control de stock.</p>
                   </div>
                 </div>
 
@@ -625,11 +662,11 @@ function Admin() {
                       <div className="form-grid">
                         <div className="form-group">
                           <label>Nombre del Producto</label>
-                          <input type="text" className="form-control" placeholder="Ej. Café Tarrazú 500g" value={prodForm.name} onChange={e => setProdForm({ ...prodForm, name: e.target.value })} required />
+                          <input type="text" className="form-control" placeholder="Ej. CafÃ© TarrazÃº 500g" value={prodForm.name} onChange={e => setProdForm({ ...prodForm, name: e.target.value })} required />
                         </div>
                         <div className="form-group">
-                          <label>Categoría</label>
-                          <input type="text" className="form-control" placeholder="Ej. Café, Granos, Bebidas" value={prodForm.category} onChange={e => setProdForm({ ...prodForm, category: e.target.value })} required />
+                          <label>CategorÃ­a</label>
+                          <input type="text" className="form-control" placeholder="Ej. CafÃ©, Granos, Bebidas" value={prodForm.category} onChange={e => setProdForm({ ...prodForm, category: e.target.value })} required />
                         </div>
                         <div className="form-group">
                           <label>Proveedor Asignado</label>
@@ -639,19 +676,19 @@ function Admin() {
                           </select>
                         </div>
                         <div className="form-group">
-                          <label>Precio Costo (₡ CRC)</label>
-                          <input type="number" className="form-control" placeholder="₡0" value={prodForm.cost} onChange={e => setProdForm({ ...prodForm, cost: e.target.value })} required />
+                          <label>Precio Costo (â‚¡ CRC)</label>
+                          <input type="number" className="form-control" placeholder="â‚¡0" value={prodForm.cost} onChange={e => setProdForm({ ...prodForm, cost: e.target.value })} required />
                         </div>
                         <div className="form-group">
-                          <label>Precio Venta (₡ CRC)</label>
-                          <input type="number" className="form-control" placeholder="₡0" value={prodForm.price} onChange={e => setProdForm({ ...prodForm, price: e.target.value })} required />
+                          <label>Precio Venta (â‚¡ CRC)</label>
+                          <input type="number" className="form-control" placeholder="â‚¡0" value={prodForm.price} onChange={e => setProdForm({ ...prodForm, price: e.target.value })} required />
                         </div>
                         <div className="form-group">
                           <label>Stock Inicial</label>
                           <input type="number" className="form-control" placeholder="0" value={prodForm.stock} onChange={e => setProdForm({ ...prodForm, stock: e.target.value })} required />
                         </div>
                         <div className="form-group">
-                          <label>Stock Mínimo (Alerta)</label>
+                          <label>Stock MÃ­nimo (Alerta)</label>
                           <input type="number" className="form-control" placeholder="10" value={prodForm.minStock} onChange={e => setProdForm({ ...prodForm, minStock: e.target.value })} required />
                         </div>
                       </div>
@@ -671,13 +708,13 @@ function Admin() {
                 <div className="card-panel">
                   <div className="card-panel__header">
                     <h3 className="card-panel__title">
-                      Inventario en Almacén
-                      <span className="card-panel__badge">{products.length} artículos</span>
+                      Inventario en AlmacÃ©n
+                      <span className="card-panel__badge">{products.length} artÃ­culos</span>
                     </h3>
                     <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                      <input type="text" className="form-control" placeholder="Buscar producto o categoría..." style={{ width: 220 }} value={catalogSearch} onChange={e => setCatalogSearch(e.target.value)} />
+                      <input type="text" className="form-control" placeholder="Buscar producto o categorÃ­a..." style={{ width: 220 }} value={catalogSearch} onChange={e => setCatalogSearch(e.target.value)} />
                       <select className="form-control" value={catalogCategory} onChange={e => setCatalogCategory(e.target.value)}>
-                        <option value="">Todas las categorías</option>
+                        <option value="">Todas las categorÃ­as</option>
                         {categories.map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
                     </div>
@@ -688,12 +725,12 @@ function Admin() {
                       <thead>
                         <tr>
                           <th>Producto</th>
-                          <th>Categoría</th>
+                          <th>CategorÃ­a</th>
                           <th>Proveedor</th>
-                          <th>P. Costo (₡)</th>
-                          <th>P. Venta (₡)</th>
+                          <th>P. Costo (â‚¡)</th>
+                          <th>P. Venta (â‚¡)</th>
                           <th>Stock</th>
-                          <th>Mínimo</th>
+                          <th>MÃ­nimo</th>
                           <th>Estado</th>
                           <th>Acciones</th>
                         </tr>
@@ -705,7 +742,7 @@ function Admin() {
                             p.category.toLowerCase().includes(catalogSearch.toLowerCase())
                           ) && (catalogCategory ? p.category === catalogCategory : true))
                           .map(p => {
-                            let statusBadge = <span className="status-pill status-pill--ok"><span className="status-pill__dot"></span>Óptimo</span>
+                            let statusBadge = <span className="status-pill status-pill--ok"><span className="status-pill__dot"></span>Ã“ptimo</span>
                             if (p.stock <= p.minStock) {
                               statusBadge = <span className="status-pill status-pill--danger"><span className="status-pill__dot"></span>Bajo Stock</span>
                             } else if (p.stock <= p.minStock * 1.5) {
@@ -748,13 +785,13 @@ function Admin() {
               </section>
             )}
 
-            {/* SECCIÓN 3: MOVIMIENTOS */}
+            {/* SECCIÃ“N 3: MOVIMIENTOS */}
             {activeSection === 'movimientos' && (
               <section className="view-section active">
                 <div className="section-header">
                   <div>
                     <h1 className="section-header__title">Kardex de Movimientos</h1>
-                    <p className="section-header__desc">Bitácora oficial de entradas, salidas, mermas y ajustes de inventario.</p>
+                    <p className="section-header__desc">BitÃ¡cora oficial de entradas, salidas, mermas y ajustes de inventario.</p>
                   </div>
                 </div>
 
@@ -762,13 +799,13 @@ function Admin() {
                   <div className="card-panel__header">
                     <h3 className="card-panel__title">
                       <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>input</span>
-                      Registrar Operación Manual
+                      Registrar OperaciÃ³n Manual
                     </h3>
                   </div>
                   <form onSubmit={handleSaveMovement}>
                     <div className="form-grid">
                       <div className="form-group">
-                        <label>Artículo</label>
+                        <label>ArtÃ­culo</label>
                         <select className="form-control" value={movForm.productId} onChange={e => setMovForm({ ...movForm, productId: e.target.value })}>
                           {products.map(p => <option key={p.id} value={p.id}>{p.name} (Stock: {p.stock})</option>)}
                         </select>
@@ -776,8 +813,8 @@ function Admin() {
                       <div className="form-group">
                         <label>Naturaleza del Movimiento</label>
                         <select className="form-control" value={movForm.type} onChange={e => setMovForm({ ...movForm, type: e.target.value })}>
-                          <option value="ENTRADA">🟢 Entrada (Compra / Reposición)</option>
-                          <option value="SALIDA">🔴 Salida (Venta / Merma)</option>
+                          <option value="ENTRADA">ðŸŸ¢ Entrada (Compra / ReposiciÃ³n)</option>
+                          <option value="SALIDA">ðŸ”´ Salida (Venta / Merma)</option>
                         </select>
                       </div>
                       <div className="form-group">
@@ -808,7 +845,7 @@ function Admin() {
                       <thead>
                         <tr>
                           <th>Fecha & Hora</th>
-                          <th>Operación</th>
+                          <th>OperaciÃ³n</th>
                           <th>Producto</th>
                           <th>Cantidad</th>
                           <th>Stock Resultante</th>
@@ -837,7 +874,7 @@ function Admin() {
               </section>
             )}
 
-            {/* SECCIÓN 4: PROVEEDORES */}
+            {/* SECCIÃ“N 4: PROVEEDORES */}
             {activeSection === 'proveedores' && (
               <section className="view-section active">
                 <div className="section-header">
@@ -854,20 +891,20 @@ function Admin() {
                   <form onSubmit={handleSaveSupplier}>
                     <div className="form-grid">
                       <div className="form-group">
-                        <label>Razón Social</label>
+                        <label>RazÃ³n Social</label>
                         <input type="text" className="form-control" placeholder="Ej. Distribuidora El Valle S.A." value={supForm.name} onChange={e => setSupForm({ ...supForm, name: e.target.value })} required />
                       </div>
                       <div className="form-group">
-                        <label>Teléfono</label>
+                        <label>TelÃ©fono</label>
                         <input type="text" className="form-control" placeholder="Ej. +(506) 2234-5678" value={supForm.phone} onChange={e => setSupForm({ ...supForm, phone: e.target.value })} />
                       </div>
                       <div className="form-group">
-                        <label>Correo Electrónico</label>
+                        <label>Correo ElectrÃ³nico</label>
                         <input type="email" className="form-control" placeholder="ventas@proveedorcr.com" value={supForm.email} onChange={e => setSupForm({ ...supForm, email: e.target.value })} />
                       </div>
                       <div className="form-group">
-                        <label>Línea / Rubro</label>
-                        <input type="text" className="form-control" placeholder="Ej. Abarrotes, Café, Empaques" value={supForm.category} onChange={e => setSupForm({ ...supForm, category: e.target.value })} />
+                        <label>LÃ­nea / Rubro</label>
+                        <input type="text" className="form-control" placeholder="Ej. Abarrotes, CafÃ©, Empaques" value={supForm.category} onChange={e => setSupForm({ ...supForm, category: e.target.value })} />
                       </div>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -887,8 +924,8 @@ function Admin() {
                           <th>Proveedor</th>
                           <th>Contacto</th>
                           <th>Correo</th>
-                          <th>Línea</th>
-                          <th>Acción</th>
+                          <th>LÃ­nea</th>
+                          <th>AcciÃ³n</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -912,13 +949,13 @@ function Admin() {
               </section>
             )}
 
-            {/* SECCIÓN 5: ÓRDENES DE COMPRA */}
+            {/* SECCIÃ“N 5: Ã“RDENES DE COMPRA */}
             {activeSection === 'ordenes' && (
               <section className="view-section active">
                 <div className="section-header">
                   <div>
-                    <h1 className="section-header__title">Gestión de Órdenes de Compra</h1>
-                    <p className="section-header__desc">Emisión de pedidos y recepción con incremento automático de existencias.</p>
+                    <h1 className="section-header__title">GestiÃ³n de Ã“rdenes de Compra</h1>
+                    <p className="section-header__desc">EmisiÃ³n de pedidos y recepciÃ³n con incremento automÃ¡tico de existencias.</p>
                   </div>
                 </div>
 
@@ -948,7 +985,7 @@ function Admin() {
                         <input type="number" className="form-control" min="1" value={orderForm.quantity} onChange={e => setOrderForm({ ...orderForm, quantity: e.target.value })} required />
                       </div>
                       <div className="form-group">
-                        <label>Costo Pactado Unitario (₡)</label>
+                        <label>Costo Pactado Unitario (â‚¡)</label>
                         <input type="number" className="form-control" value={orderForm.cost} onChange={e => setOrderForm({ ...orderForm, cost: e.target.value })} required />
                       </div>
                     </div>
@@ -970,9 +1007,9 @@ function Admin() {
                           <th>Proveedor</th>
                           <th>Producto</th>
                           <th>Cantidad</th>
-                          <th>Total (₡)</th>
+                          <th>Total (â‚¡)</th>
                           <th>Estado</th>
-                          <th>Recepción</th>
+                          <th>RecepciÃ³n</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1007,13 +1044,155 @@ function Admin() {
               </section>
             )}
 
-            {/* SECCIÓN 6: USUARIOS Y AJUSTES */}
+            {/* SECCIÃ“N 6: SOLICITUDES DE ACCESO */}
+            {activeSection === 'solicitudes' && (
+              <section className="view-section active">
+                <div className="section-header">
+                  <div>
+                    <h1 className="section-header__title">Solicitudes de Acceso Empresarial</h1>
+                    <p className="section-header__desc">Solicitudes enviadas desde la pÃ¡gina de inicio. Aprueba para enviar credenciales por WhatsApp.</p>
+                  </div>
+                </div>
+
+                <div className="kpi-grid" style={{ marginBottom: 24 }}>
+                  <div className="kpi-card kpi-card--primary">
+                    <div className="kpi-card__top">
+                      <span className="kpi-card__label">Total Solicitudes</span>
+                      <div className="kpi-card__icon-box"><span className="material-symbols-outlined">mail</span></div>
+                    </div>
+                    <div className="kpi-card__value">{solicitudes.length}</div>
+                    <div className="kpi-card__sub">Recibidas</div>
+                  </div>
+                  <div className="kpi-card kpi-card--info">
+                    <div className="kpi-card__top">
+                      <span className="kpi-card__label">Pendientes</span>
+                      <div className="kpi-card__icon-box"><span className="material-symbols-outlined">pending</span></div>
+                    </div>
+                    <div className="kpi-card__value">{pendientes.length}</div>
+                    <div className="kpi-card__sub">Requieren revisiÃ³n</div>
+                  </div>
+                  <div className="kpi-card kpi-card--success">
+                    <div className="kpi-card__top">
+                      <span className="kpi-card__label">Aprobadas</span>
+                      <div className="kpi-card__icon-box"><span className="material-symbols-outlined">check_circle</span></div>
+                    </div>
+                    <div className="kpi-card__value">{solicitudes.filter(s => s.estado === 'Aprobada').length}</div>
+                    <div className="kpi-card__sub">Accesos otorgados</div>
+                  </div>
+                  <div className="kpi-card kpi-card--danger">
+                    <div className="kpi-card__top">
+                      <span className="kpi-card__label">Rechazadas</span>
+                      <div className="kpi-card__icon-box"><span className="material-symbols-outlined">cancel</span></div>
+                    </div>
+                    <div className="kpi-card__value">{solicitudes.filter(s => s.estado === 'Rechazada').length}</div>
+                    <div className="kpi-card__sub">Denegadas</div>
+                  </div>
+                </div>
+
+                <div className="card-panel">
+                  <div className="card-panel__header">
+                    <h3 className="card-panel__title">
+                      <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>inbox</span>
+                      Solicitudes Recibidas
+                      {pendientes.length > 0 && <span className="card-panel__badge" style={{ background: 'var(--danger-subtle)', color: '#f87171', border: 'none' }}>{pendientes.length} pendientes</span>}
+                    </h3>
+                  </div>
+
+                  {solicitudes.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-muted)' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 48, display: 'block', marginBottom: 12, opacity: 0.4 }}>inbox</span>
+                      No hay solicitudes todavÃ­a. Las solicitudes aparecerÃ¡n aquÃ­ cuando una empresa llene el formulario de la pÃ¡gina de inicio.
+                    </div>
+                  ) : (
+                    <div className="table-responsive">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Empresa</th>
+                            <th>Contacto</th>
+                            <th>Correo</th>
+                            <th>TelÃ©fono</th>
+                            <th>Giro</th>
+                            <th>TamaÃ±o</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {solicitudes.slice().reverse().map(sol => (
+                            <tr key={sol.id}>
+                              <td style={{ fontWeight: 700, color: '#fff' }}>{sol.nombreEmpresa}</td>
+                              <td style={{ fontWeight: 600 }}>{sol.nombreContacto}</td>
+                              <td style={{ color: 'var(--accent)', fontSize: '0.82rem' }}>{sol.emailContacto}</td>
+                              <td style={{ fontFamily: 'monospace', fontSize: '0.82rem' }}>{sol.telefonoContacto}</td>
+                              <td><span className="status-pill status-pill--info">{sol.giroEmpresa || 'â€”'}</span></td>
+                              <td style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{sol.tamanoEmpresa || 'â€”'}</td>
+                              <td style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{sol.fecha}</td>
+                              <td>
+                                <span className={`status-pill ${sol.estado === 'Pendiente' ? 'status-pill--warning' : sol.estado === 'Aprobada' ? 'status-pill--ok' : 'status-pill--danger'}`}>
+                                  <span className="status-pill__dot"></span>{sol.estado}
+                                </span>
+                              </td>
+                              <td>
+                                {sol.estado === 'Pendiente' ? (
+                                  <div style={{ display: 'flex', gap: 4 }}>
+                                    <button className="btn btn--sm btn--success" title="Aprobar y enviar WhatsApp" onClick={() => handleAprobarSolicitud(sol)}>
+                                      <span className="material-symbols-outlined" style={{ fontSize: 15 }}>check</span>
+                                      Aprobar
+                                    </button>
+                                    <button className="btn btn--sm btn--danger btn--icon" title="Rechazar" onClick={() => handleRechazarSolicitud(sol)}>
+                                      <span className="material-symbols-outlined" style={{ fontSize: 15 }}>close</span>
+                                    </button>
+                                  </div>
+                                ) : sol.estado === 'Aprobada' ? (
+                                  <button className="btn btn--sm btn--secondary" title="Reenviar WhatsApp" onClick={() => handleAprobarSolicitud(sol)}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: 15 }}>chat</span>
+                                    Reenviar
+                                  </button>
+                                ) : (
+                                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>â€”</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+
+                {solicitudes.some(sol => sol.mensaje) && (
+                  <div className="card-panel">
+                    <div className="card-panel__header">
+                      <h3 className="card-panel__title">
+                        <span className="material-symbols-outlined" style={{ color: 'var(--warning)' }}>comment</span>
+                        Mensajes Adicionales
+                      </h3>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {solicitudes.filter(sol => sol.mensaje).reverse().map(sol => (
+                        <div key={sol.id} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 10, padding: '14px 18px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                            <span style={{ fontWeight: 700, color: '#fff', fontSize: '0.88rem' }}>{sol.nombreEmpresa}</span>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{sol.fecha}</span>
+                          </div>
+                          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>"{sol.mensaje}"</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* SECCIÃ“N 7: USUARIOS Y AJUSTES */}
             {activeSection === 'usuarios' && (
               <section className="view-section active">
                 <div className="section-header">
                   <div>
-                    <h1 className="section-header__title">Configuración y Usuarios</h1>
-                    <p className="section-header__desc">Control de acceso del personal y resguardo de la información.</p>
+                    <h1 className="section-header__title">ConfiguraciÃ³n y Usuarios</h1>
+                    <p className="section-header__desc">Control de acceso del personal y resguardo de la informaciÃ³n.</p>
                   </div>
                 </div>
 
@@ -1025,17 +1204,17 @@ function Admin() {
                     <div className="form-grid">
                       <div className="form-group">
                         <label>Nombre Completo</label>
-                        <input type="text" className="form-control" placeholder="Ej. Víctor González" value={userForm.name} onChange={e => setUserForm({ ...userForm, name: e.target.value })} required />
+                        <input type="text" className="form-control" placeholder="Ej. VÃ­ctor GonzÃ¡lez" value={userForm.name} onChange={e => setUserForm({ ...userForm, name: e.target.value })} required />
                       </div>
                       <div className="form-group">
-                        <label>Correo Electrónico</label>
+                        <label>Correo ElectrÃ³nico</label>
                         <input type="email" className="form-control" placeholder="contacto.victorgonzalez0@gmail.com" value={userForm.email} onChange={e => setUserForm({ ...userForm, email: e.target.value })} required />
                       </div>
                       <div className="form-group">
                         <label>Rol</label>
                         <select className="form-control" value={userForm.role} onChange={e => setUserForm({ ...userForm, role: e.target.value })}>
                           <option value="Administrador">Administrador del Sistema</option>
-                          <option value="Jefe de Bodega">Jefe de Bodega / Almacén</option>
+                          <option value="Jefe de Bodega">Jefe de Bodega / AlmacÃ©n</option>
                           <option value="Ventas">Cajero / Mostrador</option>
                         </select>
                       </div>
@@ -1058,7 +1237,7 @@ function Admin() {
                           <th>Correo</th>
                           <th>Rol</th>
                           <th>Estado</th>
-                          <th>Acción</th>
+                          <th>AcciÃ³n</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1086,17 +1265,17 @@ function Admin() {
 
           <footer className="footer">
             <div className="footer__left">
-              <span className="footer__brand">InvControl CR © 2026</span>
-              <span>•</span>
+              <span className="footer__brand">InvControl CR Â© 2026</span>
+              <span>â€¢</span>
               <span>Control de Inventario Empresarial</span>
             </div>
             <div className="footer__links">
-              <span>🔒 Almacenamiento Local Cifrado</span>
-              <span>•</span>
-              <span>San José, Costa Rica</span>
+              <span>ðŸ”’ Almacenamiento Local Cifrado</span>
+              <span>â€¢</span>
+              <span>San JosÃ©, Costa Rica</span>
             </div>
             <div className="footer__right">
-              <span>Versión 2.4.0-PRO</span>
+              <span>VersiÃ³n 2.4.0-PRO</span>
             </div>
           </footer>
         </main>

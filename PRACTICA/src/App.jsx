@@ -1,4 +1,4 @@
-import Routing from './roots/Routing'
+import Routing from './routes/Routing'
 import './App.css'
 
 function App() {
