@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 
 function Login() {
   const [email, setEmail] = useState('admin@correo.com')
@@ -51,6 +51,15 @@ function Login() {
 
           <button type="submit" className="btn-login">Entrar</button>
         </form>
+
+        <div className="login-card__divider">
+          <span>o</span>
+        </div>
+
+        <Link to="/login-empresa" className="btn-empresa-access">
+          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>storefront</span>
+          Acceso Empresas
+        </Link>
       </div>
     </div>
   )

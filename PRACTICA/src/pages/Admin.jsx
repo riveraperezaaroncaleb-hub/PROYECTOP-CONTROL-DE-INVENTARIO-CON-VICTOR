@@ -1,39 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-
-// Keys para almacenamiento local sincronizado
-const DB_KEYS = {
-  PRODUCTS: 'controlinv_cr_products',
-  MOVEMENTS: 'controlinv_cr_movements',
-  SUPPLIERS: 'controlinv_cr_suppliers',
-  ORDERS: 'controlinv_cr_orders',
-  USERS: 'controlinv_cr_users'
-}
-
-const SEED_DATA = {
-  products: [
-    { id: 'p1', name: 'Café Grano Tarrazú 500g', category: 'Café y Té', supplier: 'Cooperativa CoopeTarrazú RL', cost: 3500, price: 5200, stock: 45, minStock: 15 },
-    { id: 'p2', name: 'Salsa Lizano Original 700ml', category: 'Condimentos', supplier: 'Distribuidora Monteverde', cost: 1850, price: 2600, stock: 8, minStock: 12 },
-    { id: 'p3', name: 'Arroz Tío Pelón 99% Grano Entero 1.8kg', category: 'Granos Básicos', supplier: 'Distribuidora Monteverde', cost: 2100, price: 2950, stock: 4, minStock: 10 },
-    { id: 'p4', name: 'Queso Turrialba Artesanal 1kg', category: 'Lácteos', supplier: 'Lácteos del Volcán', cost: 4200, price: 5800, stock: 18, minStock: 6 }
-  ],
-  suppliers: [
-    { id: 's1', name: 'Cooperativa CoopeTarrazú RL', phone: '+(506) 2544-0000', email: 'ventas@coopetarrazu.cr', category: 'Café y Granos' },
-    { id: 's2', name: 'Distribuidora Monteverde', phone: '+(506) 2221-8899', email: 'pedidos@monteverde.cr', category: 'Abarrotes y Condimentos' },
-    { id: 's3', name: 'Lácteos del Volcán', phone: '+(506) 2553-4411', email: 'contacto@lacteosvolcan.cr', category: 'Lácteos' }
-  ],
-  users: [
-    { id: 'u1', name: 'Víctor Admin', email: 'contacto.victorgonzalez0@gmail.com', role: 'Administrador', status: 'Activo' },
-    { id: 'u2', name: 'Aaron Caleb Rivera', email: 'aaron@empresa.cr', role: 'Jefe de Bodega', status: 'Activo' }
-  ],
-  movements: [
-    { id: 'm1', date: new Date().toLocaleDateString('es-CR') + ' 10:30', type: 'ENTRADA', productId: 'p1', productName: 'Café Grano Tarrazú 500g', quantity: 30, endStock: 45, reason: 'Ingreso inicial a bodega', user: 'Víctor Admin' },
-    { id: 'm2', date: new Date().toLocaleDateString('es-CR') + ' 11:15', type: 'SALIDA', productId: 'p3', productName: 'Arroz Tío Pelón 99% 1.8kg', quantity: 6, endStock: 4, reason: 'Despacho Factura #00124', user: 'Aaron Caleb Rivera' }
-  ],
-  orders: [
-    { id: 'OC-CR-101', supplier: 'Distribuidora Monteverde', productId: 'p2', productName: 'Salsa Lizano Original 700ml', quantity: 24, unitCost: 1850, total: 44400, status: 'Pendiente' }
-  ]
-}
+import { productService, movementService, supplierService, orderService, userService } from '../sevices/dbService'
 
 function Admin() {
   const navigate = useNavigate()
@@ -99,20 +66,11 @@ function Admin() {
 
   // Cargar datos iniciales
   useEffect(() => {
-    const loadData = (key, fallback) => {
-      try {
-        const item = localStorage.getItem(key)
-        return item ? JSON.parse(item) : fallback
-      } catch {
-        return fallback
-      }
-    }
-
-    const prods = loadData(DB_KEYS.PRODUCTS, SEED_DATA.products)
-    const sups = loadData(DB_KEYS.SUPPLIERS, SEED_DATA.suppliers)
-    const movs = loadData(DB_KEYS.MOVEMENTS, SEED_DATA.movements)
-    const ords = loadData(DB_KEYS.ORDERS, SEED_DATA.orders)
-    const usrs = loadData(DB_KEYS.USERS, SEED_DATA.users)
+    const prods = productService.getAll()
+    const sups = supplierService.getAll()
+    const movs = movementService.getAll()
+    const ords = orderService.getAll()
+    const usrs = userService.getAll()
 
     setProducts(prods)
     setSuppliers(sups)
@@ -129,26 +87,26 @@ function Admin() {
     }
   }, [])
 
-  // Sincronizar en localStorage
+  // Sincronizar en db (localStorage via dbService)
   const saveProducts = (newProds) => {
     setProducts(newProds)
-    localStorage.setItem(DB_KEYS.PRODUCTS, JSON.stringify(newProds))
+    productService.save(newProds)
   }
   const saveMovements = (newMovs) => {
     setMovements(newMovs)
-    localStorage.setItem(DB_KEYS.MOVEMENTS, JSON.stringify(newMovs))
+    movementService.save(newMovs)
   }
   const saveSuppliers = (newSups) => {
     setSuppliers(newSups)
-    localStorage.setItem(DB_KEYS.SUPPLIERS, JSON.stringify(newSups))
+    supplierService.save(newSups)
   }
   const saveOrders = (newOrds) => {
     setOrders(newOrds)
-    localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify(newOrds))
+    orderService.save(newOrds)
   }
   const saveUsers = (newUsrs) => {
     setUsers(newUsrs)
-    localStorage.setItem(DB_KEYS.USERS, JSON.stringify(newUsrs))
+    userService.save(newUsrs)
   }
 
   const showNotification = (type, message) => {

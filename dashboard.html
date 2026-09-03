@@ -1025,12 +1025,18 @@
             <input type="hidden" id="prodEditId" value="" />
             <div class="form-grid">
               <div class="form-group">
-                <label for="prodName">Nombre del Producto</label>
-                <input type="text" id="prodName" class="form-control" placeholder="Ej. Café Tarrazú 500g" required />
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <label for="prodName">Nombre del Producto</label>
+                  <small id="prodNameCharCount" style="font-size:0.75rem; color:var(--text-muted);">0 / 100 caracteres</small>
+                </div>
+                <input type="text" id="prodName" class="form-control" placeholder="Ej. Café Tarrazú 500g" maxlength="100" required />
               </div>
               <div class="form-group">
-                <label for="prodCategory">Categoría</label>
-                <input type="text" id="prodCategory" class="form-control" placeholder="Ej. Granos, Bebidas, Abarrotes" required />
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <label for="prodCategory">Categoría</label>
+                  <small id="prodCategoryCharCount" style="font-size:0.75rem; color:var(--text-muted);">0 / 100 caracteres</small>
+                </div>
+                <input type="text" id="prodCategory" class="form-control" placeholder="Ej. Granos, Bebidas, Abarrotes" maxlength="100" required />
               </div>
               <div class="form-group">
                 <label for="prodSupplier">Proveedor Asignado</label>
@@ -1926,6 +1932,16 @@
 
         productForm.reset();
         document.getElementById('prodEditId').value = '';
+        const charCount = document.getElementById('prodNameCharCount');
+        if (charCount) {
+          charCount.textContent = '0 / 100 caracteres';
+          charCount.style.color = 'var(--text-muted)';
+        }
+        const catCharCount = document.getElementById('prodCategoryCharCount');
+        if (catCharCount) {
+          catCharCount.textContent = '0 / 100 caracteres';
+          catCharCount.style.color = 'var(--text-muted)';
+        }
         renderAll();
       });
 
@@ -2003,6 +2019,10 @@
             document.getElementById('prodMin').value = p.minStock;
 
             productForm.style.display = 'block';
+            const charCount = document.getElementById('prodNameCharCount');
+            if (charCount) charCount.textContent = `${p.name.length} / 100 caracteres`;
+            const catCharCount = document.getElementById('prodCategoryCharCount');
+            if (catCharCount) catCharCount.textContent = `${(p.category || '').length} / 100 caracteres`;
             document.getElementById('productFormPanel').scrollIntoView({ behavior: 'smooth' });
             showToast('info', `Editando: ${p.name}`);
           }
@@ -2223,6 +2243,68 @@
       document.getElementById('catalogSearch').addEventListener('input', renderCatalog);
       document.getElementById('catalogFilterCategory').addEventListener('change', renderCatalog);
       document.getElementById('movSearch').addEventListener('input', renderMovements);
+
+      // ─── CONTROL Y LIMITACIÓN DE ESPACIOS Y PALABRAS EN CAMPOS DE ENTRADA ───
+      const MAX_WORDS = 100;
+
+      // 1. Evitar espacios múltiples consecutivos, espacios al inicio y limitar a 100 palabras en tiempo real
+      document.addEventListener('input', (e) => {
+        const target = e.target;
+        if (target && (target.matches('input[type="text"]') || target.matches('input[type="email"]') || target.tagName === 'TEXTAREA')) {
+          const original = target.value;
+          // No permitir que inicie con espacios y evitar más de un espacio continuo
+          let cleaned = original.replace(/^\s+/, '').replace(/\s{2,}/g, ' ');
+          if (target.type === 'email') {
+            // Los correos electrónicos no deben contener ningún espacio
+            cleaned = cleaned.replace(/\s+/g, '');
+          }
+
+          // Limitar a máximo 100 palabras
+          const words = cleaned.trim().split(/\s+/).filter(Boolean);
+          if (words.length > MAX_WORDS) {
+            cleaned = words.slice(0, MAX_WORDS).join(' ');
+            showToast('info', `Límite alcanzado: máximo ${MAX_WORDS} palabras permitidas.`);
+          }
+
+          if (original !== cleaned) {
+            target.value = cleaned;
+          }
+
+          // Contador para nombre del producto (máx 100 caracteres)
+          if (target.id === 'prodName') {
+            const counter = document.getElementById('prodNameCharCount');
+            if (counter) {
+              counter.textContent = `${target.value.length} / 100 caracteres`;
+              counter.style.color = target.value.length >= 100 ? '#ef4444' : 'var(--text-muted)';
+            }
+          }
+
+          // Contador para categoría del producto (máx 100 caracteres)
+          if (target.id === 'prodCategory') {
+            const counter = document.getElementById('prodCategoryCharCount');
+            if (counter) {
+              counter.textContent = `${target.value.length} / 100 caracteres`;
+              counter.style.color = target.value.length >= 100 ? '#ef4444' : 'var(--text-muted)';
+            }
+          }
+        }
+      });
+
+      // 2. Al salir del campo (blur), aplicar trim completo
+      document.addEventListener('blur', (e) => {
+        const target = e.target;
+        if (target && (target.matches('input[type="text"]') || target.matches('input[type="email"]') || target.tagName === 'TEXTAREA')) {
+          target.value = target.value.trim();
+          if (target.id === 'prodName') {
+            const counter = document.getElementById('prodNameCharCount');
+            if (counter) counter.textContent = `${target.value.length} / 100 caracteres`;
+          }
+          if (target.id === 'prodCategory') {
+            const counter = document.getElementById('prodCategoryCharCount');
+            if (counter) counter.textContent = `${target.value.length} / 100 caracteres`;
+          }
+        }
+      }, true);
 
       // Iniciar
       renderAll();
