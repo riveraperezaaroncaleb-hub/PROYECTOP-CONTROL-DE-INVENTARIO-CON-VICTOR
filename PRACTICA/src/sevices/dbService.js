@@ -14,12 +14,39 @@ const DB_KEYS = {
 
 // ─── Normalizar y migrar usuarios para garantizar sólo roles Admin y Empresas ───
 function normalizeUsers(users) {
-  if (!Array.isArray(users)) return seedData.users
+  let list = Array.isArray(users) && users.length > 0 ? [...users] : [...seedData.users]
 
-  return users.map(u => {
+  // Garantizar que admin@correo.com exista siempre
+  const hasAdmin = list.some(u => (u.email || '').trim().toLowerCase() === 'admin@correo.com')
+  if (!hasAdmin) {
+    list.unshift({
+      id: 'u1',
+      name: 'Víctor Admin',
+      email: 'admin@correo.com',
+      role: 'Admin',
+      password: 'Adm1n@2025!',
+      mustChangePassword: false,
+      status: 'Activo'
+    })
+  }
+
+  // Garantizar que contacto.victorgonzalez0@gmail.com también exista como Admin
+  const hasVictor = list.some(u => (u.email || '').trim().toLowerCase() === 'contacto.victorgonzalez0@gmail.com')
+  if (!hasVictor) {
+    list.push({
+      id: 'u_victor',
+      name: 'Víctor Admin',
+      email: 'contacto.victorgonzalez0@gmail.com',
+      role: 'Admin',
+      password: 'Adm1n@2025!',
+      mustChangePassword: false,
+      status: 'Activo'
+    })
+  }
+
+  return list.map(u => {
     let role = u.role
     if (role !== 'Admin' && role !== 'Empresas') {
-      // Mapear roles antiguos
       if (role === 'Administrador' || role === 'Jefe de Bodega' || role === 'Ventas') {
         role = 'Admin'
       } else if (role === 'Empresa') {
@@ -29,13 +56,13 @@ function normalizeUsers(users) {
       }
     }
 
-    const email = (u.email || '').trim()
-    const isAdminDefault = email.toLowerCase() === 'admin@correo.com' || email.toLowerCase() === 'contacto.victorgonzalez0@gmail.com'
+    const email = (u.email || '').trim().toLowerCase()
+    const isAdminDefault = email === 'admin@correo.com' || email === 'contacto.victorgonzalez0@gmail.com'
 
     return {
       ...u,
       role,
-      password: u.password || (isAdminDefault ? 'Adm1n@2025!' : 'Temporal2025!'),
+      password: isAdminDefault ? (u.password || 'Adm1n@2025!') : (u.password || 'Temporal2025!'),
       mustChangePassword: isAdminDefault ? false : (u.mustChangePassword !== undefined ? u.mustChangePassword : true),
       status: u.status || 'Activo'
     }
@@ -110,8 +137,24 @@ export const userService = {
 // ─── Servicio de Autenticación Unificado (Admin y Empresas) ───
 export const authService = {
   login: (email, password) => {
-    const users = userService.getAll()
     const cleanEmail = (email || '').trim().toLowerCase()
+
+    // Master fallback para Administrador (garantiza acceso siempre)
+    if ((cleanEmail === 'admin@correo.com' || cleanEmail === 'contacto.victorgonzalez0@gmail.com') && password === 'Adm1n@2025!') {
+      const adminUser = {
+        id: 'u1',
+        name: 'Víctor Admin',
+        email: cleanEmail,
+        role: 'Admin',
+        password: 'Adm1n@2025!',
+        mustChangePassword: false,
+        status: 'Activo'
+      }
+      sessionStorage.setItem('auth_user', JSON.stringify(adminUser))
+      return { success: true, mustChangePassword: false, user: adminUser }
+    }
+
+    const users = userService.getAll()
     const user = users.find(u => (u.email || '').trim().toLowerCase() === cleanEmail)
 
     if (!user) {
