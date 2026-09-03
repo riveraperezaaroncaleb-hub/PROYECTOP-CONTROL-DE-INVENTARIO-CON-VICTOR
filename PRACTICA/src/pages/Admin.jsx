@@ -57,11 +57,19 @@ function Admin() {
     cost: ''
   })
 
-  // Formulario Usuario
+  // Función para contraseña genérica legible
+  const generateGenericPassword = () => {
+    const randomNum = Math.floor(1000 + Math.random() * 9000)
+    return `InvCR-${randomNum}!`
+  }
+
+  // Formulario Usuario / Credenciales (Solo roles Admin y Empresas)
   const [userForm, setUserForm] = useState({
     name: '',
     email: '',
-    role: 'Administrador'
+    role: 'Admin',
+    password: 'Temporal2025!',
+    supplierMatch: ''
   })
 
   // Cargar datos iniciales
@@ -324,14 +332,54 @@ function Admin() {
     }
   }
 
-  // Acciones Usuario
+  // Acciones Usuario / Credenciales
   const handleSaveUser = (e) => {
     e.preventDefault()
     if (!userForm.name || !userForm.email) return
-    const newU = { id: 'u_' + Date.now().toString(36), ...userForm, status: 'Activo' }
+
+    const cleanEmail = userForm.email.trim().toLowerCase()
+    if (users.some(u => (u.email || '').trim().toLowerCase() === cleanEmail)) {
+      showNotification('error', `Ya existe una cuenta con el correo "${cleanEmail}".`)
+      return
+    }
+
+    const genPassword = userForm.password.trim() || generateGenericPassword()
+    const newU = {
+      id: 'u_' + Date.now().toString(36),
+      name: userForm.name.trim(),
+      email: cleanEmail,
+      role: userForm.role, // Solo 'Admin' o 'Empresas'
+      password: genPassword,
+      mustChangePassword: true, // Obligatorio actualizar al iniciar sesión por primera vez
+      supplierMatch: userForm.role === 'Empresas' ? (userForm.supplierMatch.trim() || userForm.name.trim()) : undefined,
+      status: 'Activo'
+    }
+
     saveUsers([...users, newU])
-    setUserForm({ name: '', email: '', role: 'Administrador' })
-    showNotification('success', `Usuario "${newU.name}" creado.`)
+    setUserForm({
+      name: '',
+      email: '',
+      role: 'Admin',
+      password: generateGenericPassword(),
+      supplierMatch: ''
+    })
+    showNotification('success', `Cuenta creada para "${newU.name}". Contraseña genérica: ${genPassword} (requiere cambio en primer ingreso).`)
+  }
+
+  const handleResetUserPassword = (u) => {
+    const newGenPassword = generateGenericPassword()
+    const updatedUsers = users.map(item => {
+      if (item.id === u.id) {
+        return {
+          ...item,
+          password: newGenPassword,
+          mustChangePassword: true
+        }
+      }
+      return item
+    })
+    saveUsers(updatedUsers)
+    showNotification('info', `Contraseña de "${u.name}" restablecida a "${newGenPassword}". Deberá cambiarla al iniciar sesión.`)
   }
 
   return (
@@ -970,53 +1018,123 @@ function Admin() {
               <section className="view-section active">
                 <div className="section-header">
                   <div>
-                    <h1 className="section-header__title">Configuración y Usuarios</h1>
-                    <p className="section-header__desc">Control de acceso del personal y resguardo de la información.</p>
+                    <h1 className="section-header__title">Gestión de Credenciales y Accesos</h1>
+                    <p className="section-header__desc">Control de cuentas del sistema. Sólo existen 2 roles: <strong>Admin</strong> y <strong>Empresas</strong>. Toda cuenta nueva recibe una contraseña genérica que debe actualizarse en el primer inicio de sesión.</p>
                   </div>
                 </div>
 
                 <div className="card-panel">
                   <div className="card-panel__header">
-                    <h3 className="card-panel__title">Dar de Alta Colaborador</h3>
+                    <h3 className="card-panel__title">
+                      <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>person_add</span>
+                      Crear Credenciales con Contraseña Genérica
+                    </h3>
                   </div>
                   <form onSubmit={handleSaveUser}>
                     <div className="form-grid">
                       <div className="form-group">
-                        <label>Nombre Completo</label>
-                        <input type="text" className="form-control" placeholder="Ej. Víctor González" value={userForm.name} onChange={e => setUserForm({ ...userForm, name: e.target.value })} required />
+                        <label>Nombre / Razón Social</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="Ej. Juan Pérez o Proveedor S.A."
+                          value={userForm.name}
+                          onChange={e => setUserForm({ ...userForm, name: e.target.value })}
+                          required
+                        />
                       </div>
                       <div className="form-group">
                         <label>Correo Electrónico</label>
-                        <input type="email" className="form-control" placeholder="contacto.victorgonzalez0@gmail.com" value={userForm.email} onChange={e => setUserForm({ ...userForm, email: e.target.value })} required />
+                        <input
+                          type="email"
+                          className="form-control"
+                          placeholder="usuario@correo.cr"
+                          value={userForm.email}
+                          onChange={e => setUserForm({ ...userForm, email: e.target.value })}
+                          required
+                        />
                       </div>
                       <div className="form-group">
-                        <label>Rol</label>
-                        <select className="form-control" value={userForm.role} onChange={e => setUserForm({ ...userForm, role: e.target.value })}>
-                          <option value="Administrador">Administrador del Sistema</option>
-                          <option value="Jefe de Bodega">Jefe de Bodega / Almacén</option>
-                          <option value="Ventas">Cajero / Mostrador</option>
+                        <label>Rol del Sistema</label>
+                        <select
+                          className="form-control"
+                          value={userForm.role}
+                          onChange={e => setUserForm({ ...userForm, role: e.target.value })}
+                        >
+                          <option value="Admin">Admin (Control Total del Sistema)</option>
+                          <option value="Empresas">Empresas (Portal de Solo Lectura)</option>
                         </select>
                       </div>
+
+                      {userForm.role === 'Empresas' && (
+                        <div className="form-group">
+                          <label>Proveedor Asociado</label>
+                          <select
+                            className="form-control"
+                            value={userForm.supplierMatch}
+                            onChange={e => setUserForm({ ...userForm, supplierMatch: e.target.value })}
+                          >
+                            <option value="">-- Mismo que el nombre --</option>
+                            {suppliers.map(s => (
+                              <option key={s.id} value={s.name}>{s.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      <div className="form-group">
+                        <label>Contraseña Genérica Inicial</label>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={userForm.password}
+                            onChange={e => setUserForm({ ...userForm, password: e.target.value })}
+                            required
+                            style={{ fontFamily: 'monospace', fontWeight: 600 }}
+                          />
+                          <button
+                            type="button"
+                            className="btn btn--secondary btn--sm"
+                            title="Generar otra contraseña aleatoria"
+                            onClick={() => setUserForm({ ...userForm, password: generateGenericPassword() })}
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>refresh</span>
+                          </button>
+                        </div>
+                        <small style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: 4, display: 'block' }}>
+                          ℹ️ Al iniciar sesión por primera vez, el usuario estará obligado a cambiar esta contraseña.
+                        </small>
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      <button type="submit" className="btn btn--primary">Crear Usuario</button>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
+                      <button type="submit" className="btn btn--primary">
+                        <span className="material-symbols-outlined" style={{ fontSize: 16, marginRight: 6 }}>key</span>
+                        Crear Credenciales
+                      </button>
                     </div>
                   </form>
                 </div>
 
                 <div className="card-panel">
                   <div className="card-panel__header">
-                    <h3 className="card-panel__title">Colaboradores con Acceso</h3>
+                    <h3 className="card-panel__title">
+                      <span className="material-symbols-outlined">badge</span>
+                      Cuentas y Credenciales Registradas
+                    </h3>
                   </div>
                   <div className="table-responsive">
                     <table>
                       <thead>
                         <tr>
-                          <th>Usuario</th>
+                          <th>Usuario / Empresa</th>
                           <th>Correo</th>
                           <th>Rol</th>
+                          <th>Contraseña Actual / Genérica</th>
+                          <th>Primer Ingreso</th>
                           <th>Estado</th>
-                          <th>Acción</th>
+                          <th>Acciones</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1024,12 +1142,54 @@ function Admin() {
                           <tr key={u.id}>
                             <td style={{ fontWeight: 600 }}>{u.name}</td>
                             <td>{u.email}</td>
-                            <td><span className="status-pill status-pill--info">{u.role}</span></td>
-                            <td><span className="status-pill status-pill--ok"><span className="status-pill__dot"></span>{u.status}</span></td>
                             <td>
-                              <button className="btn btn--sm btn--danger btn--icon" onClick={() => saveUsers(users.filter(x => x.id !== u.id))}>
-                                <span className="material-symbols-outlined" style={{ fontSize: 15 }}>delete</span>
-                              </button>
+                              <span className={`status-pill ${u.role === 'Admin' ? 'status-pill--info' : 'status-pill--ok'}`} style={{ fontWeight: 700 }}>
+                                {u.role === 'Admin' ? 'ADMIN' : 'EMPRESAS'}
+                              </span>
+                            </td>
+                            <td>
+                              <code style={{ background: 'rgba(0,0,0,0.3)', padding: '4px 8px', borderRadius: 4, fontSize: '0.8rem', border: '1px solid rgba(255,255,255,0.08)' }}>
+                                {u.password}
+                              </code>
+                            </td>
+                            <td>
+                              {u.mustChangePassword ? (
+                                <span className="status-pill status-pill--warning" title="Aún no ha ingresado por primera vez">
+                                  <span className="material-symbols-outlined" style={{ fontSize: 13, marginRight: 3 }}>lock_clock</span>
+                                  Pendiente cambio
+                                </span>
+                              ) : (
+                                <span className="status-pill status-pill--ok" title="Contraseña personalizada por el usuario">
+                                  <span className="material-symbols-outlined" style={{ fontSize: 13, marginRight: 3 }}>verified_user</span>
+                                  Actualizada
+                                </span>
+                              )}
+                            </td>
+                            <td>
+                              <span className="status-pill status-pill--ok">
+                                <span className="status-pill__dot"></span>{u.status || 'Activo'}
+                              </span>
+                            </td>
+                            <td>
+                              <div style={{ display: 'flex', gap: 6 }}>
+                                <button
+                                  className="btn btn--sm btn--secondary"
+                                  title="Asignar nueva contraseña genérica (exige cambio en próximo login)"
+                                  onClick={() => handleResetUserPassword(u)}
+                                >
+                                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>lock_reset</span>
+                                  Resetear Clave
+                                </button>
+                                {u.email !== 'admin@correo.com' && (
+                                  <button
+                                    className="btn btn--sm btn--danger btn--icon"
+                                    title="Eliminar usuario"
+                                    onClick={() => saveUsers(users.filter(x => x.id !== u.id))}
+                                  >
+                                    <span className="material-symbols-outlined" style={{ fontSize: 15 }}>delete</span>
+                                  </button>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))}
