@@ -1,0 +1,2233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Gestión de Inventario — Corporativo CR</title>
+  <meta name="description" content="Plataforma empresarial de control de inventarios, existencias, kardex y compras en Costa Rica (Colones ₡)." />
+
+  <!-- Google Fonts: Plus Jakarta Sans & Material Symbols Outlined -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+  <style>
+    /* ============================================================
+       VARIABLES & DESIGN SYSTEM EMPRESARIAL PREMIUM (COSTA RICA)
+       ============================================================ */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      /* Fondo corporativo refinado (Slate / Zinc oscuro de alta gama) */
+      --bg-base: #090d16;
+      --bg-surface: #0f172a;
+      --bg-elevated: #1e293b;
+      --bg-card: rgba(30, 41, 59, 0.7);
+      --bg-card-hover: rgba(51, 65, 85, 0.7);
+      --bg-input: #0b1120;
+
+      /* Bordes sutiles y traslúcidos */
+      --border-subtle: rgba(148, 163, 184, 0.12);
+      --border-focus: #3b82f6;
+
+      /* Paleta Corporativa */
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-gradient: linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #0284c7 100%);
+      --primary-glow: rgba(37, 99, 235, 0.25);
+
+      --accent: #0ea5e9;
+      --success: #059669;
+      --success-subtle: rgba(5, 150, 105, 0.15);
+      --warning: #d97706;
+      --warning-subtle: rgba(217, 119, 6, 0.15);
+      --danger: #dc2626;
+      --danger-subtle: rgba(220, 38, 38, 0.15);
+
+      /* Tipografía */
+      --font-main: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-display: 'Space Grotesk', sans-serif;
+
+      --text-main: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+
+      /* Sombras y acabados */
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 20px -2px rgba(0,0,0,0.5), 0 2px 6px -1px rgba(0,0,0,0.3);
+      --shadow-card: 0 10px 30px -5px rgba(2, 6, 23, 0.6);
+      --glass-blur: blur(14px);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    body {
+      font-family: var(--font-main);
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    /* Google Material Symbols */
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      vertical-align: middle;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
+
+    /* ============================================================
+       TOP NAVBAR EMPRESARIAL
+       ============================================================ */
+    .navbar {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: var(--glass-blur);
+      border-bottom: 1px solid var(--border-subtle);
+      height: 64px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+    }
+
+    .navbar__brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+
+    .navbar__logo {
+      width: 38px;
+      height: 38px;
+      background: var(--primary-gradient);
+      border-radius: var(--radius-sm);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      box-shadow: 0 0 16px var(--primary-glow);
+    }
+
+    .navbar__brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .navbar__brand-name {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: #fff;
+    }
+
+    .navbar__brand-badge {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .navbar__mobile-btn {
+      display: none;
+      background: none;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 6px 8px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+    .navbar__mobile-btn:hover {
+      background: var(--bg-elevated);
+    }
+
+    @media (max-width: 900px) {
+      .navbar__mobile-btn { display: inline-flex; }
+    }
+
+    .navbar__center {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .cr-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(14, 165, 233, 0.1);
+      border: 1px solid rgba(14, 165, 233, 0.25);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .navbar__actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 5px 12px 5px 6px;
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .user-pill:hover {
+      background: var(--bg-elevated);
+      border-color: rgba(148, 163, 184, 0.3);
+    }
+
+    .user-pill__avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0284c7, #3b82f6);
+      display: grid;
+      place-items: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .user-pill__details {
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+    }
+
+    .user-pill__name {
+      font-size: 0.8rem;
+      font-weight: 600;
+      line-height: 1.1;
+      color: var(--text-main);
+    }
+
+    .user-pill__role {
+      font-size: 0.68rem;
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    /* ============================================================
+       LAYOUT PRINCIPAL CON SIDEBAR + CONTENIDO
+       ============================================================ */
+    .app-body {
+      display: flex;
+      flex: 1;
+      min-height: calc(100vh - 64px - 60px);
+      overflow: hidden;
+    }
+
+    /* --- SIDEBAR CORPORATIVO --- */
+    .sidebar {
+      width: 250px;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      transition: var(--transition);
+    }
+
+    .sidebar__nav {
+      padding: 20px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .nav-category {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      font-weight: 700;
+      padding: 12px 14px 4px;
+    }
+
+    .sidebar__item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.86rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: var(--transition);
+    }
+
+    .sidebar__item:hover {
+      background: var(--bg-elevated);
+      color: var(--text-main);
+    }
+
+    .sidebar__item.active {
+      background: rgba(37, 99, 235, 0.15);
+      border-color: rgba(37, 99, 235, 0.4);
+      color: #60a5fa;
+      font-weight: 600;
+    }
+
+    .sidebar__item.active .material-symbols-outlined {
+      font-variation-settings: 'FILL' 1;
+      color: #60a5fa;
+    }
+
+    /* --- CONTENIDO PRINCIPAL --- */
+    .main-scroll {
+      flex: 1;
+      min-width: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    .content-area {
+      padding: 28px;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    /* Vistas SPA */
+    .view-section {
+      display: none;
+      animation: fadeIn 0.2s ease-out;
+    }
+    .view-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Encabezado de Sección */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .section-header__title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+
+    .section-header__desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    /* ============================================================
+       CARDS & KPIS CORPORATIVOS
+       ============================================================ */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+    }
+
+    .kpi-card:hover {
+      border-color: rgba(148, 163, 184, 0.25);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+
+    .kpi-card--primary::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+    .kpi-card--success::before { background: linear-gradient(90deg, #10b981, #34d399); }
+    .kpi-card--info::before    { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
+    .kpi-card--danger::before  { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+    .kpi-card__top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .kpi-card__label {
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+    }
+
+    .kpi-card__icon-box {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-sm);
+      display: grid;
+      place-items: center;
+    }
+
+    .kpi-card--primary .kpi-card__icon-box { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+    .kpi-card--success .kpi-card__icon-box { background: var(--success-subtle); color: #34d399; }
+    .kpi-card--info .kpi-card__icon-box    { background: rgba(14, 165, 233, 0.15); color: #38bdf8; }
+    .kpi-card--danger .kpi-card__icon-box  { background: var(--danger-subtle); color: #f87171; }
+
+    .kpi-card__value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #fff;
+    }
+
+    .kpi-card__sub {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ============================================================
+       PANELES & TABLAS EMPRESARIALES
+       ============================================================ */
+    .card-panel {
+      background: var(--bg-card);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .card-panel__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .card-panel__title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-panel__badge {
+      font-size: 0.72rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      padding: 3px 8px;
+      border-radius: 999px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* Formularios — máximo 3 columnas para evitar overflow */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    @media (min-width: 900px) {
+      .form-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+    }
+
+    .form-control {
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.88rem;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .form-control:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    /* Botones Corporativos */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 0.84rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      transition: var(--transition);
+      text-decoration: none;
+    }
+
+    .btn:active { transform: scale(0.97); }
+
+    .btn--primary {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 2px 10px var(--primary-glow);
+    }
+    .btn--primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn--secondary {
+      background: var(--bg-elevated);
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+    }
+    .btn--secondary:hover {
+      background: #334155;
+    }
+
+    .btn--success { background: var(--success); color: #fff; }
+    .btn--success:hover { background: #047857; }
+
+    .btn--danger { background: var(--danger); color: #fff; }
+    .btn--danger:hover { background: #b91c1c; }
+
+    .btn--sm { padding: 5px 9px; font-size: 0.76rem; border-radius: 6px; }
+    .btn--icon { padding: 6px 8px; font-size: 0.8rem; }
+
+    /* Tablas Corporativas */
+    .table-responsive {
+      overflow-x: auto;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-surface);
+      scrollbar-width: thin;
+      scrollbar-color: rgba(148, 163, 184, 0.2) transparent;
+    }
+
+    /* Scrollbar personalizada corporativa y discreta */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.2);
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(148, 163, 184, 0.4);
+    }
+
+    /* Tablas compactas de resumen sin scroll horizontal forzado */
+    .table-responsive--compact {
+      overflow-x: hidden;
+    }
+
+    .table-responsive--compact table {
+      table-layout: auto;
+      width: 100%;
+    }
+
+    .table-responsive--compact th,
+    .table-responsive--compact td {
+      white-space: nowrap;
+      padding: 10px 12px;
+    }
+
+    .table-responsive--compact td:first-child {
+      white-space: normal;
+      max-width: 180px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+
+    thead th {
+      background: rgba(15, 23, 42, 0.95);
+      padding: 12px 14px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-subtle);
+      white-space: nowrap;
+    }
+
+    tbody td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+      white-space: nowrap;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: rgba(59, 130, 246, 0.04); }
+
+    /* Status Pills / Badges */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .status-pill--ok { background: var(--success-subtle); color: #34d399; }
+    .status-pill--warning { background: var(--warning-subtle); color: #fbbf24; }
+    .status-pill--danger { background: var(--danger-subtle); color: #f87171; }
+    .status-pill--info { background: rgba(14, 165, 233, 0.15); color: #38bdf8; }
+
+    .status-pill__dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* ============================================================
+       FOOTER EMPRESARIAL
+       ============================================================ */
+    .footer {
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-subtle);
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: auto;
+    }
+
+    .footer__left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .footer__brand {
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .footer__links {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .footer__link {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: var(--transition);
+    }
+
+    .footer__link:hover {
+      color: var(--text-main);
+    }
+
+    .footer__right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Toast Container */
+    .toast-container {
+      position: fixed;
+      top: 80px;
+      right: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 9999;
+      pointer-events: none;
+    }
+
+    .toast {
+      pointer-events: auto;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 12px 18px;
+      font-size: 0.84rem;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: var(--shadow-card);
+      animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      max-width: 380px;
+    }
+
+    .toast--success { border-left: 4px solid var(--success); }
+    .toast--error   { border-left: 4px solid var(--danger); }
+    .toast--info    { border-left: 4px solid var(--primary); }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .sidebar {
+        position: fixed;
+        left: -250px;
+        top: 64px;
+        bottom: 0;
+        z-index: 900;
+      }
+      .sidebar.open { left: 0; }
+      .content-area { padding: 16px 14px; }
+      .navbar { padding: 0 14px; }
+      .navbar__center { display: none; }
+      .hide-mobile { display: none !important; }
+      .footer { padding: 14px; flex-direction: column; text-align: center; }
+      .form-grid { grid-template-columns: 1fr !important; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .section-header__title { font-size: 1.15rem; }
+      .card-panel__header { flex-direction: column; align-items: flex-start; }
+    }
+
+    @media (max-width: 480px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+      .user-pill__details { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CONTENEDOR TOASTS -->
+  <div class="toast-container" id="toastBox"></div>
+
+  <!-- ============================================================
+       TOP NAVBAR EMPRESARIAL
+       ============================================================ -->
+  <header class="navbar">
+    <div class="navbar__brand">
+      <button class="navbar__mobile-btn" id="mobileMenuBtn" title="Menú">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+      <div class="navbar__logo">
+        <span class="material-symbols-outlined">inventory_2</span>
+      </div>
+      <div class="navbar__brand-text">
+        <span class="navbar__brand-name">InvControl CR</span>
+        <span class="navbar__brand-badge">
+          <span class="material-symbols-outlined" style="font-size:12px;">verified</span>
+          Edición Corporativa
+        </span>
+      </div>
+    </div>
+
+    <div class="navbar__center">
+      <div class="cr-badge">
+        <span class="material-symbols-outlined" style="font-size:15px;">payments</span>
+        <span>Moneda: Colones (CRC ₡)</span>
+      </div>
+    </div>
+
+    <div class="navbar__actions">
+      <button class="btn btn--secondary btn--sm" id="btnQuickMove" title="Kardex Rápido">
+        <span class="material-symbols-outlined" style="font-size:16px;">swap_horiz</span>
+        <span class="hide-mobile">Movimiento</span>
+      </button>
+
+      <button class="btn btn--primary btn--sm" id="btnQuickAdd" title="Añadir Producto">
+        <span class="material-symbols-outlined" style="font-size:16px;">add</span>
+        <span class="hide-mobile">Nuevo Producto</span>
+      </button>
+
+      <div class="user-pill" title="Sesión activa">
+        <div class="user-pill__avatar">CR</div>
+        <div class="user-pill__details">
+          <span class="user-pill__name" id="currentUserName">Víctor Admin</span>
+          <span class="user-pill__role">En Línea</span>
+        </div>
+        <span class="material-symbols-outlined" style="font-size:16px; color:var(--text-muted);">expand_more</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       LAYOUT: SIDEBAR + VISTAS SPA
+       ============================================================ -->
+  <div class="app-body">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar__nav">
+        <span class="nav-category">Analítica & Control</span>
+        <div class="sidebar__item active" data-section="dashboard">
+          <span class="material-symbols-outlined">dashboard</span>
+          <span>Dashboard & KPIs</span>
+        </div>
+        <div class="sidebar__item" data-section="catalogo">
+          <span class="material-symbols-outlined">shelves</span>
+          <span>Catálogo y Existencias</span>
+        </div>
+        <div class="sidebar__item" data-section="movimientos">
+          <span class="material-symbols-outlined">sync_alt</span>
+          <span>Movimientos (Kardex)</span>
+        </div>
+
+        <span class="nav-category">Abastecimiento</span>
+        <div class="sidebar__item" data-section="proveedores">
+          <span class="material-symbols-outlined">factory</span>
+          <span>Proveedores</span>
+        </div>
+        <div class="sidebar__item" data-section="ordenes">
+          <span class="material-symbols-outlined">receipt_long</span>
+          <span>Órdenes de Compra</span>
+        </div>
+
+        <span class="nav-category">Administración</span>
+        <div class="sidebar__item" data-section="usuarios">
+          <span class="material-symbols-outlined">manage_accounts</span>
+          <span>Usuarios y Ajustes</span>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- ÁREA PRINCIPAL -->
+    <main class="main-scroll">
+      <div class="content-area">
+
+      <!-- ============================================================
+           SECCIÓN 1: DASHBOARD & KPIS (EN COLONES ₡)
+           ============================================================ -->
+      <section class="view-section active" id="sec-dashboard">
+        <div class="section-header">
+          <div>
+            <h1 class="section-header__title">Panel de Control Gerencial</h1>
+            <p class="section-header__desc">Resumen analítico valorizado en Colones Costarricenses (₡).</p>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn btn--secondary btn--sm" id="btnRefreshDash">
+              <span class="material-symbols-outlined" style="font-size:16px;">refresh</span>
+              Actualizar
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+          <div class="kpi-card kpi-card--primary">
+            <div class="kpi-card__top">
+              <span class="kpi-card__label">Total Artículos</span>
+              <div class="kpi-card__icon-box">
+                <span class="material-symbols-outlined">category</span>
+              </div>
+            </div>
+            <div class="kpi-card__value" id="kpiDashTotal">0</div>
+            <div class="kpi-card__sub">En catálogo activo</div>
+          </div>
+
+          <div class="kpi-card kpi-card--success">
+            <div class="kpi-card__top">
+              <span class="kpi-card__label">Valuación Costo (₡)</span>
+              <div class="kpi-card__icon-box">
+                <span class="material-symbols-outlined">account_balance_wallet</span>
+              </div>
+            </div>
+            <div class="kpi-card__value" id="kpiDashCostValue">₡0</div>
+            <div class="kpi-card__sub">Inversión actual en bodega</div>
+          </div>
+
+          <div class="kpi-card kpi-card--info">
+            <div class="kpi-card__top">
+              <span class="kpi-card__label">Valor Proyectado Venta</span>
+              <div class="kpi-card__icon-box">
+                <span class="material-symbols-outlined">trending_up</span>
+              </div>
+            </div>
+            <div class="kpi-card__value" id="kpiDashSaleValue">₡0</div>
+            <div class="kpi-card__sub">Margen comercial bruto</div>
+          </div>
+
+          <div class="kpi-card kpi-card--danger">
+            <div class="kpi-card__top">
+              <span class="kpi-card__label">Bajo Stock Crítico</span>
+              <div class="kpi-card__icon-box">
+                <span class="material-symbols-outlined">warning</span>
+              </div>
+            </div>
+            <div class="kpi-card__value" id="kpiDashAlerts">0</div>
+            <div class="kpi-card__sub">Productos que requieren reposición</div>
+          </div>
+        </div>
+
+        <!-- Tablas de Resumen de Alertas y Movimientos -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+          <div class="card-panel">
+            <div class="card-panel__header">
+              <h3 class="card-panel__title">
+                <span class="material-symbols-outlined" style="color:var(--danger)">notification_important</span>
+                Alertas de Reabastecimiento
+              </h3>
+            </div>
+            <div class="table-responsive table-responsive--compact">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Producto</th>
+                    <th>Existencia</th>
+                    <th>Mínimo</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody id="dashAlertsBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card-panel">
+            <div class="card-panel__header">
+              <h3 class="card-panel__title">
+                <span class="material-symbols-outlined" style="color:var(--accent)">history</span>
+                Últimos Movimientos en Kardex
+              </h3>
+            </div>
+            <div class="table-responsive table-responsive--compact">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Tipo</th>
+                    <th>Producto</th>
+                    <th>Cant.</th>
+                    <th>Fecha</th>
+                  </tr>
+                </thead>
+                <tbody id="dashRecentMovesBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           SECCIÓN 2: CATÁLOGO Y EXISTENCIAS
+           ============================================================ -->
+      <section class="view-section" id="sec-catalogo">
+        <div class="section-header">
+          <div>
+            <h1 class="section-header__title">Catálogo y Control de Existencias</h1>
+            <p class="section-header__desc">Gestión integral de productos, costos, precios de venta y control de stock.</p>
+          </div>
+        </div>
+
+        <!-- Formulario Registro / Edición -->
+        <div class="card-panel" id="productFormPanel">
+          <div class="card-panel__header">
+            <h3 class="card-panel__title">
+              <span class="material-symbols-outlined" style="color:var(--primary)">add_circle</span>
+              Registrar o Actualizar Producto
+            </h3>
+            <button class="btn btn--secondary btn--sm" id="btnToggleForm">
+              <span class="material-symbols-outlined" style="font-size:16px;">unfold_less</span>
+              Ocultar
+            </button>
+          </div>
+
+          <form id="productMainForm" novalidate>
+            <input type="hidden" id="prodEditId" value="" />
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="prodName">Nombre del Producto</label>
+                <input type="text" id="prodName" class="form-control" placeholder="Ej. Café Tarrazú 500g" required />
+              </div>
+              <div class="form-group">
+                <label for="prodCategory">Categoría</label>
+                <input type="text" id="prodCategory" class="form-control" placeholder="Ej. Granos, Bebidas, Abarrotes" required />
+              </div>
+              <div class="form-group">
+                <label for="prodSupplier">Proveedor Asignado</label>
+                <select id="prodSupplier" class="form-control">
+                  <option value="General">Proveedor General</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="prodCost">Precio Costo (₡ CRC)</label>
+                <input type="number" id="prodCost" class="form-control" step="1" min="0" placeholder="₡0" required />
+              </div>
+              <div class="form-group">
+                <label for="prodPrice">Precio Venta (₡ CRC)</label>
+                <input type="number" id="prodPrice" class="form-control" step="1" min="0" placeholder="₡0" required />
+              </div>
+              <div class="form-group">
+                <label for="prodStock">Stock Inicial</label>
+                <input type="number" id="prodStock" class="form-control" min="0" placeholder="0" required />
+              </div>
+              <div class="form-group">
+                <label for="prodMin">Stock Mínimo (Alerta)</label>
+                <input type="number" id="prodMin" class="form-control" min="0" placeholder="10" required />
+              </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:12px;">
+              <button type="reset" class="btn btn--secondary" id="btnCancelEdit">
+                <span class="material-symbols-outlined" style="font-size:16px;">clear_all</span>
+                Limpiar
+              </button>
+              <button type="submit" class="btn btn--primary" id="btnSaveProduct">
+                <span class="material-symbols-outlined" style="font-size:16px;">save</span>
+                Guardar Producto
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Tabla Principal de Productos -->
+        <div class="card-panel">
+          <div class="card-panel__header">
+            <h3 class="card-panel__title">
+              Inventario en Almacén
+              <span class="card-panel__badge" id="productCountBadge">0 artículos</span>
+            </h3>
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+              <input type="text" id="catalogSearch" class="form-control" placeholder="Buscar por nombre o categoría..." style="width:260px;" />
+              <select id="catalogFilterCategory" class="form-control">
+                <option value="">Todas las categorías</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Categoría</th>
+                  <th>Proveedor</th>
+                  <th>P. Costo (₡)</th>
+                  <th>P. Venta (₡)</th>
+                  <th>Stock</th>
+                  <th>Mínimo</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="catalogTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           SECCIÓN 3: MOVIMIENTOS (KARDEX)
+           ============================================================ -->
+      <section class="view-section" id="sec-movimientos">
+        <div class="section-header">
+          <div>
+            <h1 class="section-header__title">Kardex de Movimientos</h1>
+            <p class="section-header__desc">Bitácora oficial de entradas, salidas, mermas y ajustes de inventario.</p>
+          </div>
+        </div>
+
+        <div class="card-panel">
+          <div class="card-panel__header">
+            <h3 class="card-panel__title">
+              <span class="material-symbols-outlined" style="color:var(--primary)">input</span>
+              Registrar Operación Manual
+            </h3>
+          </div>
+          <form id="movementForm">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="movProductSelect">Artículo</label>
+                <select id="movProductSelect" class="form-control" required></select>
+              </div>
+              <div class="form-group">
+                <label for="movType">Naturaleza del Movimiento</label>
+                <select id="movType" class="form-control">
+                  <option value="ENTRADA">🟢 Entrada (Compra / Devolución)</option>
+                  <option value="SALIDA">🔴 Salida (Venta / Merma)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="movQuantity">Cantidad de Unidades</label>
+                <input type="number" id="movQuantity" class="form-control" min="1" value="1" required />
+              </div>
+              <div class="form-group">
+                <label for="movReason">Detalle / Documento Soporte</label>
+                <input type="text" id="movReason" class="form-control" placeholder="Ej. Factura #402, Venta en caja" required />
+              </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end;">
+              <button type="submit" class="btn btn--primary">
+                <span class="material-symbols-outlined" style="font-size:16px;">post_add</span>
+                Asentar en Kardex
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card-panel">
+          <div class="card-panel__header">
+            <h3 class="card-panel__title">Historial de Transacciones</h3>
+            <input type="text" id="movSearch" class="form-control" placeholder="Filtrar movimientos..." style="width:240px;" />
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha & Hora</th>
+                  <th>Operación</th>
+                  <th>Producto</th>
+                  <th>Cantidad</th>
+                  <th>Stock Resultante</th>
+                  <th>Motivo / Factura</th>
+                  <th>Responsable</th>
+                </tr>
+              </thead>
+              <tbody id="movementsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           SECCIÓN 4: PROVEEDORES
+           ============================================================ -->
+      <section class="view-section" id="sec-proveedores">
+        <div class="section-header">
+          <div>
+            <h1 class="section-header__title">Directorio de Proveedores</h1>
+            <p class="section-header__desc">Empresas suplidoras y aliados comerciales locales.</p>
+          </div>
+        </div>
+
+        <div class="card-panel">
+          <div class="card-panel__header">
+            <h3 class="card-panel__title">
+              <span class="material-symbols-outlined" style="color:var(--primary)">domain_add</span>
+              Registrar Proveedor
+            </h3>
+          </div>
+          <form id="supplierForm">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="supName">Razón Social / Nombre Comercial</label>
+                <input type="text" id="supName" class="form-control" placeholder="Ej. Distribuidora El Valle S.A." required />
+              </div>
+              <div class="form-group">
+                <label for="supPhone">Teléfono / WhatsApp</label>
+                <input type="text" id="supPhone" class="form-control" placeholder="Ej. +(506) 2234-5678" required />
+              </div>
+              <div class="form-group">
+                <label for="supEmail">Correo Electrónico</label>
+                <input type="email" id="supEmail" class="form-control" placeholder="ventas@proveedorcr.com" required />
+              </div>
+              <div class="form-group">
+                <label for="supCategory">Línea de Suministro</label>
+                <input type="text" id="supCategory" class="form-control" placeholder="Ej. Abarrotes, Limpieza, Empaques" required />
+              </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end;">
+              <button type="submit" class="btn btn--primary">
+                <span class="material-symbols-outlined" style="font-size:16px;">save</span>
+                Guardar Proveedor
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card-panel">
+          <div class="card-panel__header">
+            <h3 class="card-panel__title">Proveedores Vinculados</h3>
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Proveedor</th>
+                  <th>Contacto Telefónico</th>
+                  <th>Correo</th>
+                  <th>Línea</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="suppliersTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           SECCIÓN 5: ÓRDENES DE COMPRA
+           ============================================================ -->
+      <section class="view-section" id="sec-ordenes">
+        <div class="section-header">
+          <div>
+            <h1 class="section-header__title">Gestión de Órdenes de Compra</h1>
+            <p class="section-header__desc">Emisión de pedidos y recepción formal con incremento automático de existencias.</p>
+          </div>
+        </div>
+
+        <div class="card-panel">
+          <div class="card-panel__header">
+            <h3 class="card-panel__title">
+              <span class="material-symbols-outlined" style="color:var(--primary)">shopping_cart_checkout</span>
+              Emitir Orden de Compra
+            </h3>
+          </div>
+          <form id="orderForm">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="ordSupplier">Proveedor Seleccionado</label>
+                <select id="ordSupplier" class="form-control" required></select>
+              </div>
+              <div class="form-group">
+                <label for="ordProduct">Producto a Requerir</label>
+                <select id="ordProduct" class="form-control" required></select>
+              </div>
+              <div class="form-group">
+                <label for="ordQuantity">Cantidad</label>
+                <input type="number" id="ordQuantity" class="form-control" min="1" value="20" required />
+              </div>
+              <div class="form-group">
+                <label for="ordCostEst">Costo Pactado Unitario (₡ CRC)</label>
+                <input type="number" id="ordCostEst" class="form-control" step="1" placeholder="₡0" required />
+              </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end;">
+              <button type="submit" class="btn btn--primary">
+                <span class="material-symbols-outlined" style="font-size:16px;">receipt</span>
+                Generar Orden
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card-panel">
+          <div class="card-panel__header">
+            <h3 class="card-panel__title">Seguimiento de Pedidos</h3>
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Folio</th>
+                  <th>Proveedor</th>
+                  <th>Producto</th>
+                  <th>Cantidad</th>
+                  <th>Monto Total (₡)</th>
+                  <th>Estado</th>
+                  <th>Recepción</th>
+                </tr>
+              </thead>
+              <tbody id="ordersTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           SECCIÓN 6: USUARIOS Y CONFIGURACIÓN
+           ============================================================ -->
+      <section class="view-section" id="sec-usuarios">
+        <div class="section-header">
+          <div>
+            <h1 class="section-header__title">Configuración y Usuarios</h1>
+            <p class="section-header__desc">Control de acceso del personal y resguardo de la información.</p>
+          </div>
+        </div>
+
+        <div class="card-panel">
+          <div class="card-panel__header">
+            <h3 class="card-panel__title">
+              <span class="material-symbols-outlined" style="color:var(--primary)">person_add</span>
+              Dar de Alta Nuevo Colaborador
+            </h3>
+          </div>
+          <form id="userForm">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="uName">Nombre y Apellidos</label>
+                <input type="text" id="uName" class="form-control" placeholder="Ej. Aaron Caleb Rivera" required />
+              </div>
+              <div class="form-group">
+                <label for="uEmail">Correo Institucional</label>
+                <input type="email" id="uEmail" class="form-control" placeholder="aaron@empresa.cr" required />
+              </div>
+              <div class="form-group">
+                <label for="uRole">Perfil / Rol</label>
+                <select id="uRole" class="form-control">
+                  <option value="Administrador">Administrador del Sistema</option>
+                  <option value="Jefe de Bodega">Jefe de Bodega / Almacén</option>
+                  <option value="Ventas">Cajero / Mostrador</option>
+                </select>
+              </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end;">
+              <button type="submit" class="btn btn--primary">
+                <span class="material-symbols-outlined" style="font-size:16px;">add_moderator</span>
+                Crear Usuario
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card-panel">
+          <div class="card-panel__header">
+            <h3 class="card-panel__title">Colaboradores con Acceso Activo</h3>
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Correo</th>
+                  <th>Rol</th>
+                  <th>Estado</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Mantenimiento de Datos -->
+        <div class="card-panel">
+          <div class="card-panel__header">
+            <h3 class="card-panel__title">
+              <span class="material-symbols-outlined" style="color:var(--warning)">database</span>
+              Resguardo de Datos Locales
+            </h3>
+          </div>
+          <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:18px;">
+            Exporta un respaldo integral en formato JSON con todos los artículos, kardex de movimientos y órdenes de compra emitidas en Costa Rica.
+          </p>
+          <div style="display:flex; gap:12px; flex-wrap:wrap;">
+            <button class="btn btn--secondary" id="btnExportData">
+              <span class="material-symbols-outlined" style="font-size:16px;">download</span>
+              Descargar Respaldo JSON
+            </button>
+            <button class="btn btn--danger" id="btnResetData">
+              <span class="material-symbols-outlined" style="font-size:16px;">restart_alt</span>
+              Restablecer Valores Iniciales
+            </button>
+          </div>
+        </div>
+      </section>
+
+      </div><!-- /.content-area -->
+
+  <!-- ============================================================
+       FOOTER CORPORATIVO
+       ============================================================ -->
+  <footer class="footer">
+    <div class="footer__left">
+      <span class="footer__brand">InvControl CR © 2026</span>
+      <span>•</span>
+      <span>Control de Inventario Empresarial</span>
+    </div>
+
+    <div class="footer__links">
+      <span style="display:flex; align-items:center; gap:6px;">
+        <span class="material-symbols-outlined" style="font-size:14px; color:var(--success);">lock</span>
+        Almacenamiento Local Cifrado
+      </span>
+      <span>•</span>
+      <span>San José, Costa Rica</span>
+    </div>
+
+    <div class="footer__right">
+      <span>Versión 2.4.0-PRO</span>
+    </div>
+  </footer>
+
+    </main>
+  </div>
+
+  <!-- ============================================================
+       SCRIPT JAVASCRIPT: LÓGICA DE NEGOCIO EN COLONES (₡)
+       ============================================================ -->
+  <script>
+    (() => {
+      'use strict';
+
+      // ─── KEYS DE LOCALSTORAGE ─────────────────────────────
+      const DB_KEYS = {
+        PRODUCTS: 'controlinv_cr_products',
+        MOVEMENTS: 'controlinv_cr_movements',
+        SUPPLIERS: 'controlinv_cr_suppliers',
+        ORDERS: 'controlinv_cr_orders',
+        USERS: 'controlinv_cr_users'
+      };
+
+      // ─── SEED DATA EN COLONES COSTARRICENSES (CRC ₡) ─────
+      const SEED_DATA = {
+        products: [
+          { id: 'p1', name: 'Café Grano Tarrazú 500g', category: 'Café y Té', supplier: 'Cooperativa CoopeTarrazú RL', cost: 3500, price: 5200, stock: 45, minStock: 15 },
+          { id: 'p2', name: 'Salsa Lizano Original 700ml', category: 'Condimentos', supplier: 'Distribuidora Monteverde', cost: 1850, price: 2600, stock: 8, minStock: 12 },
+          { id: 'p3', name: 'Arroz Tío Pelón 99% Grano Entero 1.8kg', category: 'Granos Básicos', supplier: 'Distribuidora Monteverde', cost: 2100, price: 2950, stock: 4, minStock: 10 },
+          { id: 'p4', name: 'Queso Turrialba Artesanal 1kg', category: 'Lácteos', supplier: 'Lácteos del Volcán', cost: 4200, price: 5800, stock: 18, minStock: 6 }
+        ],
+        suppliers: [
+          { id: 's1', name: 'Cooperativa CoopeTarrazú RL', phone: '+(506) 2544-0000', email: 'ventas@coopetarrazu.cr', category: 'Café y Granos' },
+          { id: 's2', name: 'Distribuidora Monteverde', phone: '+(506) 2221-8899', email: 'pedidos@monteverde.cr', category: 'Abarrotes y Condimentos' },
+          { id: 's3', name: 'Lácteos del Volcán', phone: '+(506) 2553-4411', email: 'contacto@lacteosvolcan.cr', category: 'Lácteos' }
+        ],
+        users: [
+          { id: 'u1', name: 'Víctor Admin', email: 'victor@empresa.cr', role: 'Administrador', status: 'Activo' },
+          { id: 'u2', name: 'Aaron Caleb Rivera', email: 'aaron@empresa.cr', role: 'Jefe de Bodega', status: 'Activo' }
+        ],
+        movements: [
+          { id: 'm1', date: new Date().toLocaleDateString('es-CR') + ' ' + new Date().toLocaleTimeString('es-CR', {hour:'2-digit', minute:'2-digit'}), type: 'ENTRADA', productId: 'p1', productName: 'Café Grano Tarrazú 500g', quantity: 30, endStock: 45, reason: 'Ingreso inicial a bodega', user: 'Víctor Admin' },
+          { id: 'm2', date: new Date().toLocaleDateString('es-CR') + ' ' + new Date().toLocaleTimeString('es-CR', {hour:'2-digit', minute:'2-digit'}), type: 'SALIDA', productId: 'p3', productName: 'Arroz Tío Pelón 99% 1.8kg', quantity: 6, endStock: 4, reason: 'Despacho Factura #00124', user: 'Aaron Caleb Rivera' }
+        ],
+        orders: [
+          { id: 'OC-CR-101', supplier: 'Distribuidora Monteverde', productId: 'p2', productName: 'Salsa Lizano Original 700ml', quantity: 24, unitCost: 1850, total: 44400, status: 'Pendiente' }
+        ]
+      };
+
+      // ─── DB HELPERS ───────────────────────────────────────
+      const DB = {
+        get(key, fallback) {
+          try {
+            const item = localStorage.getItem(key);
+            return item ? JSON.parse(item) : fallback;
+          } catch {
+            return fallback;
+          }
+        },
+        set(key, data) {
+          localStorage.setItem(key, JSON.stringify(data));
+        },
+        init() {
+          if (!localStorage.getItem(DB_KEYS.PRODUCTS)) this.set(DB_KEYS.PRODUCTS, SEED_DATA.products);
+          if (!localStorage.getItem(DB_KEYS.SUPPLIERS)) this.set(DB_KEYS.SUPPLIERS, SEED_DATA.suppliers);
+          if (!localStorage.getItem(DB_KEYS.USERS)) this.set(DB_KEYS.USERS, SEED_DATA.users);
+          if (!localStorage.getItem(DB_KEYS.MOVEMENTS)) this.set(DB_KEYS.MOVEMENTS, SEED_DATA.movements);
+          if (!localStorage.getItem(DB_KEYS.ORDERS)) this.set(DB_KEYS.ORDERS, SEED_DATA.orders);
+        }
+      };
+
+      DB.init();
+
+      // ─── FORMATEADOR DE MONEDA EN COLONES COSTARRICENSES ──
+      function formatCRC(amount) {
+        return '₡' + Number(amount || 0).toLocaleString('es-CR', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 2
+        });
+      }
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+      }
+
+      // ─── TOAST NOTIFIER CON MATERIAL SYMBOLS ──────────────
+      function showToast(type, text) {
+        const icons = {
+          success: 'check_circle',
+          error: 'error',
+          info: 'info'
+        };
+        const box = document.getElementById('toastBox');
+        const t = document.createElement('div');
+        t.className = `toast toast--${type}`;
+        t.innerHTML = `
+          <span class="material-symbols-outlined" style="color:var(--${type === 'info' ? 'primary' : type}); font-size:20px;">
+            ${icons[type] || 'notifications'}
+          </span>
+          <span>${text}</span>
+        `;
+        box.appendChild(t);
+        setTimeout(() => {
+          t.style.opacity = '0';
+          t.style.transform = 'translateX(40px)';
+          t.style.transition = '0.3s ease';
+          setTimeout(() => t.remove(), 300);
+        }, 3200);
+      }
+
+      // ─── NAVEGACIÓN MODULAR (SPA) ─────────────────────────
+      const navItems = document.querySelectorAll('.sidebar__item');
+      const viewSections = document.querySelectorAll('.view-section');
+      const sidebar = document.getElementById('sidebar');
+
+      // Botón hamburguesa para móvil
+      document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+      });
+
+      function switchSection(sectionId) {
+        navItems.forEach(item => {
+          item.classList.toggle('active', item.dataset.section === sectionId);
+        });
+
+        viewSections.forEach(sec => {
+          sec.classList.toggle('active', sec.id === `sec-${sectionId}`);
+        });
+
+        // Cerrar sidebar en móvil al cambiar de sección
+        if (window.innerWidth <= 900) {
+          sidebar.classList.remove('open');
+        }
+
+        // Scroll al inicio del contenido
+        document.querySelector('.main-scroll').scrollTop = 0;
+
+        renderAll();
+      }
+
+      navItems.forEach(item => {
+        item.addEventListener('click', () => switchSection(item.dataset.section));
+      });
+
+      document.getElementById('btnQuickMove').addEventListener('click', () => switchSection('movimientos'));
+      document.getElementById('btnQuickAdd').addEventListener('click', () => switchSection('catalogo'));
+      document.getElementById('btnRefreshDash').addEventListener('click', () => {
+        renderDashboard();
+        showToast('info', 'Indicadores de Costa Rica actualizados.');
+      });
+
+      // Plegar/desplegar formulario de catálogo
+      const btnToggleForm = document.getElementById('btnToggleForm');
+      const productForm = document.getElementById('productMainForm');
+      btnToggleForm.addEventListener('click', () => {
+        const isHidden = productForm.style.display === 'none';
+        productForm.style.display = isHidden ? 'block' : 'none';
+        btnToggleForm.innerHTML = isHidden 
+          ? `<span class="material-symbols-outlined" style="font-size:16px;">unfold_less</span> Ocultar`
+          : `<span class="material-symbols-outlined" style="font-size:16px;">unfold_more</span> Expandir`;
+      });
+
+      // ─── RENDER: DASHBOARD EN COLONES ─────────────────────
+      function renderDashboard() {
+        const products = DB.get(DB_KEYS.PRODUCTS, []);
+        const movements = DB.get(DB_KEYS.MOVEMENTS, []);
+
+        const totalProds = products.length;
+        const totalCostCRC = products.reduce((acc, p) => acc + (p.cost * p.stock), 0);
+        const totalSaleCRC = products.reduce((acc, p) => acc + (p.price * p.stock), 0);
+        const lowStock = products.filter(p => p.stock <= p.minStock);
+
+        document.getElementById('kpiDashTotal').textContent = totalProds;
+        document.getElementById('kpiDashCostValue').textContent = formatCRC(totalCostCRC);
+        document.getElementById('kpiDashSaleValue').textContent = formatCRC(totalSaleCRC);
+        document.getElementById('kpiDashAlerts').textContent = lowStock.length;
+
+        // Alertas
+        const alertBody = document.getElementById('dashAlertsBody');
+        alertBody.innerHTML = '';
+        if (lowStock.length === 0) {
+          alertBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:20px;">
+            <span class="material-symbols-outlined" style="color:var(--success); font-size:20px;">check_circle</span>
+            Existencias en rangos óptimos
+          </td></tr>`;
+        } else {
+          lowStock.slice(0, 5).forEach(p => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td style="font-weight:600;">${escapeHtml(p.name)}</td>
+              <td style="color:var(--danger); font-weight:700;">${p.stock}</td>
+              <td style="color:var(--text-muted);">${p.minStock}</td>
+              <td>
+                <span class="status-pill status-pill--danger">
+                  <span class="status-pill__dot"></span>Reordenar
+                </span>
+              </td>
+            `;
+            alertBody.appendChild(tr);
+          });
+        }
+
+        // Movimientos recientes
+        const movesBody = document.getElementById('dashRecentMovesBody');
+        movesBody.innerHTML = '';
+        if (movements.length === 0) {
+          movesBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:20px;">Sin transacciones recientes</td></tr>`;
+        } else {
+          movements.slice(-5).reverse().forEach(m => {
+            const isEntry = m.type === 'ENTRADA';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>
+                <span class="status-pill ${isEntry ? 'status-pill--ok' : 'status-pill--warning'}">
+                  ${m.type}
+                </span>
+              </td>
+              <td style="font-weight:600;">${escapeHtml(m.productName)}</td>
+              <td>${isEntry ? '+' : '-'}${m.quantity}</td>
+              <td style="font-size:0.75rem; color:var(--text-muted);">${m.date.split(' ')[0]}</td>
+            `;
+            movesBody.appendChild(tr);
+          });
+        }
+      }
+
+      // ─── RENDER: CATÁLOGO ─────────────────────────────────
+      function renderCatalog() {
+        const products = DB.get(DB_KEYS.PRODUCTS, []);
+        const suppliers = DB.get(DB_KEYS.SUPPLIERS, []);
+        const search = document.getElementById('catalogSearch').value.toLowerCase().trim();
+        const catFilter = document.getElementById('catalogFilterCategory').value;
+
+        // Categorías
+        const categories = [...new Set(products.map(p => p.category))];
+        const catSelect = document.getElementById('catalogFilterCategory');
+        const currentCatVal = catSelect.value;
+        catSelect.innerHTML = '<option value="">Todas las categorías</option>' + 
+          categories.map(c => `<option value="${c}" ${c === currentCatVal ? 'selected' : ''}>${c}</option>`).join('');
+
+        // Proveedores en Formulario
+        const supSelect = document.getElementById('prodSupplier');
+        supSelect.innerHTML = '<option value="General">Proveedor General</option>' +
+          suppliers.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+
+        const filtered = products.filter(p => {
+          const matchText = p.name.toLowerCase().includes(search) || p.category.toLowerCase().includes(search);
+          const matchCat = catFilter ? p.category === catFilter : true;
+          return matchText && matchCat;
+        });
+
+        document.getElementById('productCountBadge').textContent = `${filtered.length} artículos`;
+
+        const tbody = document.getElementById('catalogTableBody');
+        tbody.innerHTML = '';
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:32px; color:var(--text-muted);">No hay artículos que coincidan con la búsqueda.</td></tr>`;
+          return;
+        }
+
+        filtered.forEach(p => {
+          let badge = `<span class="status-pill status-pill--ok"><span class="status-pill__dot"></span>Óptimo</span>`;
+          if (p.stock <= p.minStock) {
+            badge = `<span class="status-pill status-pill--danger"><span class="status-pill__dot"></span>Bajo Stock</span>`;
+          } else if (p.stock <= p.minStock * 1.5) {
+            badge = `<span class="status-pill status-pill--warning"><span class="status-pill__dot"></span>Preventivo</span>`;
+          }
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="font-weight:600;">${escapeHtml(p.name)}</td>
+            <td><span style="color:var(--text-secondary); font-size:0.82rem;">${escapeHtml(p.category)}</span></td>
+            <td><span style="font-size:0.78rem; color:var(--text-muted);">${escapeHtml(p.supplier || 'General')}</span></td>
+            <td>${formatCRC(p.cost)}</td>
+            <td style="font-weight:600; color:#fff;">${formatCRC(p.price)}</td>
+            <td style="font-weight:700; font-size:0.95rem;">${p.stock}</td>
+            <td style="color:var(--text-muted);">${p.minStock}</td>
+            <td>${badge}</td>
+            <td>
+              <div style="display:flex; gap:4px;">
+                <button class="btn btn--sm btn--success btn--icon" title="Sumar Stock" data-quick-add="${p.id}">
+                  <span class="material-symbols-outlined" style="font-size:15px;">add</span>
+                </button>
+                <button class="btn btn--sm btn--secondary btn--icon" title="Restar Stock" data-quick-sub="${p.id}">
+                  <span class="material-symbols-outlined" style="font-size:15px;">remove</span>
+                </button>
+                <button class="btn btn--sm btn--secondary btn--icon" title="Editar" data-edit="${p.id}">
+                  <span class="material-symbols-outlined" style="font-size:15px;">edit</span>
+                </button>
+                <button class="btn btn--sm btn--danger btn--icon" title="Eliminar" data-delete="${p.id}">
+                  <span class="material-symbols-outlined" style="font-size:15px;">delete</span>
+                </button>
+              </div>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // ─── RENDER: MOVIMIENTOS ──────────────────────────────
+      function renderMovements() {
+        const products = DB.get(DB_KEYS.PRODUCTS, []);
+        const movements = DB.get(DB_KEYS.MOVEMENTS, []);
+        const search = document.getElementById('movSearch').value.toLowerCase().trim();
+
+        const movProdSelect = document.getElementById('movProductSelect');
+        movProdSelect.innerHTML = products.map(p => `<option value="${p.id}">${escapeHtml(p.name)} (Existencias: ${p.stock})</option>`).join('');
+
+        const filtered = movements.filter(m => 
+          m.productName.toLowerCase().includes(search) || 
+          m.reason.toLowerCase().includes(search) ||
+          m.type.toLowerCase().includes(search)
+        );
+
+        const tbody = document.getElementById('movementsTableBody');
+        tbody.innerHTML = '';
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:24px; color:var(--text-muted);">Sin movimientos registrados.</td></tr>`;
+          return;
+        }
+
+        filtered.slice().reverse().forEach(m => {
+          const isEntry = m.type === 'ENTRADA';
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="color:var(--text-muted); font-size:0.8rem;">${m.date}</td>
+            <td><span class="status-pill ${isEntry ? 'status-pill--ok' : 'status-pill--danger'}">${m.type}</span></td>
+            <td style="font-weight:600;">${escapeHtml(m.productName)}</td>
+            <td style="font-weight:700;">${isEntry ? '+' : '-'}${m.quantity}</td>
+            <td style="color:var(--accent); font-weight:600;">${m.endStock}</td>
+            <td style="color:var(--text-secondary);">${escapeHtml(m.reason)}</td>
+            <td style="font-size:0.8rem; color:var(--text-muted);">${escapeHtml(m.user || 'Víctor')}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // ─── RENDER: PROVEEDORES ──────────────────────────────
+      function renderSuppliers() {
+        const suppliers = DB.get(DB_KEYS.SUPPLIERS, []);
+        const tbody = document.getElementById('suppliersTableBody');
+        tbody.innerHTML = '';
+
+        if (suppliers.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:24px; color:var(--text-muted);">No hay proveedores registrados.</td></tr>`;
+          return;
+        }
+
+        suppliers.forEach(s => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="font-weight:600;">${escapeHtml(s.name)}</td>
+            <td><span style="font-family:monospace; color:var(--accent);">${escapeHtml(s.phone)}</span></td>
+            <td>${escapeHtml(s.email)}</td>
+            <td><span class="status-pill status-pill--info">${escapeHtml(s.category)}</span></td>
+            <td>
+              <button class="btn btn--sm btn--danger btn--icon" data-del-supplier="${s.id}" title="Eliminar">
+                <span class="material-symbols-outlined" style="font-size:15px;">delete</span>
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // ─── RENDER: ÓRDENES EN COLONES ───────────────────────
+      function renderOrders() {
+        const suppliers = DB.get(DB_KEYS.SUPPLIERS, []);
+        const products = DB.get(DB_KEYS.PRODUCTS, []);
+        const orders = DB.get(DB_KEYS.ORDERS, []);
+
+        document.getElementById('ordSupplier').innerHTML = suppliers.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+        document.getElementById('ordProduct').innerHTML = products.map(p => `<option value="${p.id}">${p.name} (Costo base: ${formatCRC(p.cost)})</option>`).join('');
+
+        const tbody = document.getElementById('ordersTableBody');
+        tbody.innerHTML = '';
+
+        if (orders.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:24px; color:var(--text-muted);">No hay órdenes de compra registradas.</td></tr>`;
+          return;
+        }
+
+        orders.forEach(o => {
+          const isPending = o.status === 'Pendiente';
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="font-weight:700; color:var(--primary);">${o.id}</td>
+            <td>${escapeHtml(o.supplier)}</td>
+            <td style="font-weight:600;">${escapeHtml(o.productName)}</td>
+            <td>${o.quantity} unidades</td>
+            <td style="font-weight:700; color:#fff;">${formatCRC(o.total)}</td>
+            <td>
+              <span class="status-pill ${isPending ? 'status-pill--warning' : 'status-pill--ok'}">
+                <span class="status-pill__dot"></span>${o.status}
+              </span>
+            </td>
+            <td>
+              ${isPending 
+                ? `<button class="btn btn--sm btn--success" data-receive-order="${o.id}">
+                    <span class="material-symbols-outlined" style="font-size:15px;">inventory</span>
+                    Ingresar a Bodega
+                   </button>`
+                : `<span style="font-size:0.75rem; color:var(--text-muted);">Procesada</span>`
+              }
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // ─── RENDER: USUARIOS ─────────────────────────────────
+      function renderUsers() {
+        const users = DB.get(DB_KEYS.USERS, []);
+        const tbody = document.getElementById('usersTableBody');
+        tbody.innerHTML = '';
+
+        users.forEach(u => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="font-weight:600;">${escapeHtml(u.name)}</td>
+            <td>${escapeHtml(u.email)}</td>
+            <td><span class="status-pill status-pill--info">${escapeHtml(u.role)}</span></td>
+            <td><span class="status-pill status-pill--ok"><span class="status-pill__dot"></span>${u.status}</span></td>
+            <td>
+              <button class="btn btn--sm btn--danger btn--icon" data-del-user="${u.id}" title="Eliminar Acceso">
+                <span class="material-symbols-outlined" style="font-size:15px;">person_remove</span>
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      function renderAll() {
+        renderDashboard();
+        renderCatalog();
+        renderMovements();
+        renderSuppliers();
+        renderOrders();
+        renderUsers();
+      }
+
+      // ─── ACCIONES FORMULARIO PRODUCTO ─────────────────────
+      productForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const editId = document.getElementById('prodEditId').value;
+        const name = document.getElementById('prodName').value.trim();
+        const category = document.getElementById('prodCategory').value.trim();
+        const supplier = document.getElementById('prodSupplier').value;
+        const cost = parseFloat(document.getElementById('prodCost').value);
+        const price = parseFloat(document.getElementById('prodPrice').value);
+        const stock = parseInt(document.getElementById('prodStock').value, 10);
+        const minStock = parseInt(document.getElementById('prodMin').value, 10);
+
+        if (!name || isNaN(cost) || isNaN(price) || isNaN(stock)) {
+          showToast('error', 'Completa los campos obligatorios del producto.');
+          return;
+        }
+
+        const products = DB.get(DB_KEYS.PRODUCTS, []);
+
+        if (editId) {
+          const idx = products.findIndex(p => p.id === editId);
+          if (idx !== -1) {
+            products[idx] = { ...products[idx], name, category, supplier, cost, price, stock, minStock };
+            DB.set(DB_KEYS.PRODUCTS, products);
+            showToast('success', `Producto "${name}" actualizado en Colones.`);
+          }
+        } else {
+          const newProd = {
+            id: 'p_' + Date.now().toString(36),
+            name, category, supplier, cost, price, stock, minStock
+          };
+          products.push(newProd);
+          DB.set(DB_KEYS.PRODUCTS, products);
+
+          // Asentar en Kardex
+          const movements = DB.get(DB_KEYS.MOVEMENTS, []);
+          movements.push({
+            id: 'm_' + Date.now(),
+            date: new Date().toLocaleDateString('es-CR') + ' ' + new Date().toLocaleTimeString('es-CR', {hour:'2-digit', minute:'2-digit'}),
+            type: 'ENTRADA',
+            productId: newProd.id,
+            productName: newProd.name,
+            quantity: newProd.stock,
+            endStock: newProd.stock,
+            reason: 'Apertura inicial en catálogo',
+            user: 'Víctor Admin'
+          });
+          DB.set(DB_KEYS.MOVEMENTS, movements);
+          showToast('success', `Producto "${name}" registrado exitosamente.`);
+        }
+
+        productForm.reset();
+        document.getElementById('prodEditId').value = '';
+        renderAll();
+      });
+
+      // Quick Actions en Tabla Catálogo
+      document.getElementById('catalogTableBody').addEventListener('click', (e) => {
+        const addBtn = e.target.closest('[data-quick-add]');
+        const subBtn = e.target.closest('[data-quick-sub]');
+        const editBtn = e.target.closest('[data-edit]');
+        const delBtn = e.target.closest('[data-delete]');
+
+        const products = DB.get(DB_KEYS.PRODUCTS, []);
+        const movements = DB.get(DB_KEYS.MOVEMENTS, []);
+
+        if (addBtn) {
+          const id = addBtn.dataset.quickAdd;
+          const p = products.find(x => x.id === id);
+          if (p) {
+            p.stock += 1;
+            DB.set(DB_KEYS.PRODUCTS, products);
+            movements.push({
+              id: 'm_' + Date.now(),
+              date: new Date().toLocaleDateString('es-CR') + ' ' + new Date().toLocaleTimeString('es-CR', {hour:'2-digit', minute:'2-digit'}),
+              type: 'ENTRADA',
+              productId: p.id,
+              productName: p.name,
+              quantity: 1,
+              endStock: p.stock,
+              reason: 'Ajuste rápido (+1)',
+              user: 'Víctor Admin'
+            });
+            DB.set(DB_KEYS.MOVEMENTS, movements);
+            renderAll();
+            showToast('success', `+1 unidad a ${p.name}`);
+          }
+        }
+
+        if (subBtn) {
+          const id = subBtn.dataset.quickSub;
+          const p = products.find(x => x.id === id);
+          if (p) {
+            if (p.stock <= 0) {
+              showToast('error', 'Existencia actual en 0.');
+              return;
+            }
+            p.stock -= 1;
+            DB.set(DB_KEYS.PRODUCTS, products);
+            movements.push({
+              id: 'm_' + Date.now(),
+              date: new Date().toLocaleDateString('es-CR') + ' ' + new Date().toLocaleTimeString('es-CR', {hour:'2-digit', minute:'2-digit'}),
+              type: 'SALIDA',
+              productId: p.id,
+              productName: p.name,
+              quantity: 1,
+              endStock: p.stock,
+              reason: 'Ajuste rápido (-1)',
+              user: 'Víctor Admin'
+            });
+            DB.set(DB_KEYS.MOVEMENTS, movements);
+            renderAll();
+            showToast('info', `−1 unidad de ${p.name}`);
+          }
+        }
+
+        if (editBtn) {
+          const id = editBtn.dataset.edit;
+          const p = products.find(x => x.id === id);
+          if (p) {
+            document.getElementById('prodEditId').value = p.id;
+            document.getElementById('prodName').value = p.name;
+            document.getElementById('prodCategory').value = p.category;
+            document.getElementById('prodSupplier').value = p.supplier || 'General';
+            document.getElementById('prodCost').value = p.cost;
+            document.getElementById('prodPrice').value = p.price;
+            document.getElementById('prodStock').value = p.stock;
+            document.getElementById('prodMin').value = p.minStock;
+
+            productForm.style.display = 'block';
+            document.getElementById('productFormPanel').scrollIntoView({ behavior: 'smooth' });
+            showToast('info', `Editando: ${p.name}`);
+          }
+        }
+
+        if (delBtn) {
+          const id = delBtn.dataset.delete;
+          const p = products.find(x => x.id === id);
+          if (p && confirm(`¿Confirmas eliminar permanentemente el producto "${p.name}"?`)) {
+            DB.set(DB_KEYS.PRODUCTS, products.filter(x => x.id !== id));
+            renderAll();
+            showToast('error', `Producto ${p.name} eliminado.`);
+          }
+        }
+      });
+
+      // ─── ACCIONES KARDEX ──────────────────────────────────
+      document.getElementById('movementForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const prodId = document.getElementById('movProductSelect').value;
+        const type = document.getElementById('movType').value;
+        const qty = parseInt(document.getElementById('movQuantity').value, 10);
+        const reason = document.getElementById('movReason').value.trim();
+
+        const products = DB.get(DB_KEYS.PRODUCTS, []);
+        const p = products.find(x => x.id === prodId);
+        if (!p) return;
+
+        if (type === 'SALIDA' && p.stock < qty) {
+          showToast('error', `Existencias insuficientes. Disponibles: ${p.stock}`);
+          return;
+        }
+
+        p.stock = type === 'ENTRADA' ? p.stock + qty : p.stock - qty;
+        DB.set(DB_KEYS.PRODUCTS, products);
+
+        const movements = DB.get(DB_KEYS.MOVEMENTS, []);
+        movements.push({
+          id: 'm_' + Date.now(),
+          date: new Date().toLocaleDateString('es-CR') + ' ' + new Date().toLocaleTimeString('es-CR', {hour:'2-digit', minute:'2-digit'}),
+          type,
+          productId: p.id,
+          productName: p.name,
+          quantity: qty,
+          endStock: p.stock,
+          reason,
+          user: 'Víctor Admin'
+        });
+        DB.set(DB_KEYS.MOVEMENTS, movements);
+
+        document.getElementById('movementForm').reset();
+        renderAll();
+        showToast('success', `Operación de ${type} registrada.`);
+      });
+
+      // ─── ACCIONES PROVEEDORES ─────────────────────────────
+      document.getElementById('supplierForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('supName').value.trim();
+        const phone = document.getElementById('supPhone').value.trim();
+        const email = document.getElementById('supEmail').value.trim();
+        const category = document.getElementById('supCategory').value.trim();
+
+        const suppliers = DB.get(DB_KEYS.SUPPLIERS, []);
+        suppliers.push({ id: 's_' + Date.now().toString(36), name, phone, email, category });
+        DB.set(DB_KEYS.SUPPLIERS, suppliers);
+
+        document.getElementById('supplierForm').reset();
+        renderAll();
+        showToast('success', `Proveedor ${name} guardado.`);
+      });
+
+      document.getElementById('suppliersTableBody').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-del-supplier]');
+        if (!btn) return;
+        const id = btn.dataset.delSupplier;
+        const suppliers = DB.get(DB_KEYS.SUPPLIERS, []);
+        const s = suppliers.find(x => x.id === id);
+        if (s && confirm(`¿Eliminar proveedor ${s.name}?`)) {
+          DB.set(DB_KEYS.SUPPLIERS, suppliers.filter(x => x.id !== id));
+          renderAll();
+          showToast('error', 'Proveedor eliminado.');
+        }
+      });
+
+      // ─── ACCIONES ÓRDENES DE COMPRA (CRC) ─────────────────
+      document.getElementById('orderForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const supplier = document.getElementById('ordSupplier').value;
+        const prodId = document.getElementById('ordProduct').value;
+        const quantity = parseInt(document.getElementById('ordQuantity').value, 10);
+        const unitCost = parseFloat(document.getElementById('ordCostEst').value);
+
+        const products = DB.get(DB_KEYS.PRODUCTS, []);
+        const p = products.find(x => x.id === prodId);
+        if (!p) return;
+
+        const orders = DB.get(DB_KEYS.ORDERS, []);
+        orders.push({
+          id: 'OC-CR-' + (100 + orders.length + 1),
+          supplier,
+          productId: p.id,
+          productName: p.name,
+          quantity,
+          unitCost,
+          total: quantity * unitCost,
+          status: 'Pendiente'
+        });
+        DB.set(DB_KEYS.ORDERS, orders);
+
+        document.getElementById('orderForm').reset();
+        renderAll();
+        showToast('success', 'Orden de compra emitida.');
+      });
+
+      document.getElementById('ordersTableBody').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-receive-order]');
+        if (!btn) return;
+
+        const orderId = btn.dataset.receiveOrder;
+        const orders = DB.get(DB_KEYS.ORDERS, []);
+        const order = orders.find(o => o.id === orderId);
+
+        if (!order || order.status !== 'Pendiente') return;
+
+        if (confirm(`¿Confirmar recepción de ${order.quantity} unidades de "${order.productName}"? Se sumarán al stock de bodega.`)) {
+          order.status = 'Recibida';
+          DB.set(DB_KEYS.ORDERS, orders);
+
+          const products = DB.get(DB_KEYS.PRODUCTS, []);
+          const p = products.find(x => x.id === order.productId);
+          if (p) {
+            p.stock += order.quantity;
+            DB.set(DB_KEYS.PRODUCTS, products);
+
+            const movements = DB.get(DB_KEYS.MOVEMENTS, []);
+            movements.push({
+              id: 'm_' + Date.now(),
+              date: new Date().toLocaleDateString('es-CR') + ' ' + new Date().toLocaleTimeString('es-CR', {hour:'2-digit', minute:'2-digit'}),
+              type: 'ENTRADA',
+              productId: p.id,
+              productName: p.name,
+              quantity: order.quantity,
+              endStock: p.stock,
+              reason: `Recepción Orden ${order.id} (${order.supplier})`,
+              user: 'Víctor Admin'
+            });
+            DB.set(DB_KEYS.MOVEMENTS, movements);
+          }
+
+          renderAll();
+          showToast('success', `Mercancía ingresada: +${order.quantity} unidades.`);
+        }
+      });
+
+      // ─── ACCIONES USUARIOS & BACKUP ───────────────────────
+      document.getElementById('userForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('uName').value.trim();
+        const email = document.getElementById('uEmail').value.trim();
+        const role = document.getElementById('uRole').value;
+
+        const users = DB.get(DB_KEYS.USERS, []);
+        users.push({ id: 'u_' + Date.now().toString(36), name, email, role, status: 'Activo' });
+        DB.set(DB_KEYS.USERS, users);
+
+        document.getElementById('userForm').reset();
+        renderAll();
+        showToast('success', `Usuario ${name} creado.`);
+      });
+
+      document.getElementById('usersTableBody').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-del-user]');
+        if (!btn) return;
+        const id = btn.dataset.delUser;
+        const users = DB.get(DB_KEYS.USERS, []);
+        if (users.length <= 1) {
+          showToast('error', 'Debe mantenerse al menos un administrador.');
+          return;
+        }
+        if (confirm('¿Retirar acceso a este usuario?')) {
+          DB.set(DB_KEYS.USERS, users.filter(x => x.id !== id));
+          renderAll();
+          showToast('info', 'Usuario retirado.');
+        }
+      });
+
+      document.getElementById('btnExportData').addEventListener('click', () => {
+        const fullBackup = {
+          moneda: 'CRC - Colones de Costa Rica',
+          fechaRespaldo: new Date().toISOString(),
+          products: DB.get(DB_KEYS.PRODUCTS, []),
+          movements: DB.get(DB_KEYS.MOVEMENTS, []),
+          suppliers: DB.get(DB_KEYS.SUPPLIERS, []),
+          orders: DB.get(DB_KEYS.ORDERS, []),
+          users: DB.get(DB_KEYS.USERS, [])
+        };
+        const blob = new Blob([JSON.stringify(fullBackup, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `respaldo_inventario_cr_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('success', 'Respaldo exportado con éxito.');
+      });
+
+      document.getElementById('btnResetData').addEventListener('click', () => {
+        if (confirm('⚠️ ¿Seguro que deseas restablecer los datos de Costa Rica a valores iniciales de prueba?')) {
+          localStorage.clear();
+          DB.init();
+          renderAll();
+          showToast('info', 'Datos restablecidos a valores iniciales en colones.');
+        }
+      });
+
+      // Búsqueda en vivo
+      document.getElementById('catalogSearch').addEventListener('input', renderCatalog);
+      document.getElementById('catalogFilterCategory').addEventListener('change', renderCatalog);
+      document.getElementById('movSearch').addEventListener('input', renderMovements);
+
+      // Iniciar
+      renderAll();
+
+    })();
+  </script>
+</body>
+</html>
