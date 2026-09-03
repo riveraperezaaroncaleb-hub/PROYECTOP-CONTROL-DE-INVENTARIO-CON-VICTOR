@@ -726,3 +726,192 @@ tbody tr:hover { background: rgba(59, 130, 246, 0.04); }
   .kpi-grid { grid-template-columns: 1fr; }
   .user-pill__details { display: none; }
 }
+
+/* ============================================================
+   LOGIN — ELEMENTOS ADICIONALES
+   ============================================================ */
+.login-card__divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+.login-card__divider::before,
+.login-card__divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(148, 163, 184, 0.15);
+}
+
+.btn-empresa-access {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #34d399;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.btn-empresa-access:hover {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+}
+
+/* ============================================================
+   LOGIN EMPRESA — VARIANTE VERDE ESMERALDA
+   ============================================================ */
+.login-container--empresa {
+  background: radial-gradient(circle at 50% 50%, #064e3b 0%, #0f172a 60%, #020617 100%);
+}
+
+.floating-shapes--green span {
+  background: rgba(16, 185, 129, 0.15);
+}
+
+.login-card--empresa {
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.login-card__icon {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.login-card__subtitle {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.login-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 8px;
+  color: #f87171;
+  font-size: 0.82rem;
+  margin-bottom: 16px;
+  animation: slideIn 0.3s forwards;
+}
+
+.btn-login--empresa {
+  background: linear-gradient(135deg, #059669, #047857);
+  box-shadow: 0 4px 15px rgba(5, 150, 105, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-login--empresa:hover {
+  background: linear-gradient(135deg, #047857, #065f46);
+  box-shadow: 0 6px 20px rgba(5, 150, 105, 0.5);
+}
+
+.login-card__footer {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.login-card__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.82rem;
+  transition: color 0.2s;
+}
+.login-card__link:hover {
+  color: #10b981;
+}
+
+/* ============================================================
+   PORTAL EMPRESA — ESTILOS ESPECÍFICOS
+   ============================================================ */
+.empresa-portal .navbar--empresa {
+  border-bottom-color: rgba(16, 185, 129, 0.15);
+}
+
+.navbar__logo--empresa {
+  background: linear-gradient(135deg, #059669, #10b981) !important;
+}
+
+.navbar__brand-badge--empresa {
+  color: #10b981 !important;
+}
+
+.cr-badge--empresa {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.25);
+  color: #34d399;
+}
+
+.empresa-readonly-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #fbbf24;
+}
+
+.user-pill--empresa {
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.user-pill__avatar--empresa {
+  background: linear-gradient(135deg, #059669, #10b981) !important;
+  font-size: 0.65rem !important;
+}
+
+/* Sidebar enterprise variant */
+.sidebar__item--empresa.active {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #34d399;
+}
+
+.sidebar__item--empresa.active .material-symbols-outlined {
+  font-variation-settings: 'FILL' 1;
+  color: #34d399;
+}
+
+.sidebar__item--empresa:hover {
+  color: #34d399;
+}
+
+/* KPI cards enterprise variant */
+.kpi-card--emp-primary::before { background: linear-gradient(90deg, #10b981, #34d399); }
+.kpi-card--emp-success::before { background: linear-gradient(90deg, #059669, #10b981); }
+.kpi-card--emp-info::before    { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
+.kpi-card--emp-danger::before  { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+.kpi-card--emp-primary .kpi-card__icon-box { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+.kpi-card--emp-success .kpi-card__icon-box { background: rgba(5, 150, 105, 0.15); color: #10b981; }
+.kpi-card--emp-info .kpi-card__icon-box    { background: rgba(14, 165, 233, 0.15); color: #38bdf8; }
+.kpi-card--emp-danger .kpi-card__icon-box  { background: rgba(239, 68, 68, 0.15); color: #f87171; }
